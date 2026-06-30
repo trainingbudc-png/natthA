@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ผู้ดูแลระบบ | ระบบ iPad</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>เมนูผู้ดูแล (Admin)</h2>
+        <p id="showName" style="font-weight: bold; color: #dc3545;"></p>
+        
+        <input type="text" id="ipadId" placeholder="ระบุรหัส iPad (เช่น A01)">
+        
+        <button class="btn-admin" onclick="sendData('เตรียมเครื่อง', 'พร้อมใช้งาน')">✔️ เตรียมเครื่องเสร็จสิ้น</button>
+        <button class="btn-admin" onclick="sendData('ตรวจคืน', 'สภาพสมบูรณ์')">✔️ ตรวจรับเครื่องคืน (ปกติ)</button>
+        <button class="btn-warning" onclick="sendData('ตรวจคืน', 'เครื่องมีปัญหา')">⚠️ ตรวจรับเครื่อง (มีปัญหา)</button>
+
+        <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

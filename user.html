@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หน้าผู้ใช้งาน | ระบบ iPad</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>เมนูผู้ใช้งาน (User)</h2>
+        <p id="showName" style="font-weight: bold; color: #007bff;"></p>
+        
+        <input type="text" id="ipadId" placeholder="ระบุรหัส iPad (เช่น A01)">
+        
+        <button onclick="sendData('ขอเบิก', 'รอดำเนินการ')">1. แจ้งขอเบิกเครื่อง</button>
+        <button onclick="sendData('ยืม', 'รับเครื่องแล้ว')">2. ยืนยันรับเครื่อง</button>
+        <button onclick="sendData('คืน', 'รอแอดมินตรวจ')">3. ส่งคืนเครื่อง</button>
+
+        <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

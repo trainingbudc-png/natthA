@@ -140,4 +140,19 @@ window.onload = function() {
         
         
     }
+	// 6. ตัวดักตอนโหลดหน้าเว็บ (อัปเดตตัวสั่งรันตารางตอนเปิดหน้า)
+window.onload = function() {
+    if (window.location.pathname.includes("index.html") || window.location.pathname === "/") {
+        main();
+    } else {
+        const userName = localStorage.getItem("userName");
+        if(document.getElementById("showName") && userName) {
+            document.getElementById("showName").innerText = "ผู้ใช้งาน LINE: " + userName;
+        }
+        
+        // เพิ่มตรงนี้กลับเข้าไป: สั่งให้ดึงข้อมูลตาราง 1 ครั้งตอนเปิดหน้า admin.html (ไม่มีการรันซ้ำอัตโนมัติ)
+        if (window.location.pathname.includes("admin.html")) {
+            fetchStatusData();
+        }
+    }
 };

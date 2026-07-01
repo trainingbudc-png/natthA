@@ -95,7 +95,7 @@ async function fetchStatusData() {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${row.timestamp || "-"}</td>
+                    <td>${row.timestamp ? new Date(row.timestamp).toLocaleString('th-TH', {dateStyle: 'short', timeStyle: 'short'}) : "-"}</td>
                     <td>${row.name || "-"}</td>
                     <td>${row.ipadId || "-"}</td>
                     <td><span class="badge-status" style="background-color: ${statusColor}">${row.status || "-"}</span></td>
@@ -138,10 +138,6 @@ window.onload = function() {
             document.getElementById("showName").innerText = "ผู้ใช้งาน LINE: " + userName;
         }
         
-        // ถ้าเป็นหน้า Admin ให้รันตาราง และสั่งโหลดใหม่ทุกๆ 15 วินาที
-        if (window.location.pathname.includes("admin.html")) {
-            fetchStatusData();
-            setInterval(fetchStatusData, 15000); 
-        }
+        
     }
 };

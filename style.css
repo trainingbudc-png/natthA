@@ -1,77 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
-
-* { box-sizing: border-box; font-family: 'Kanit', 'Segoe UI', Tahoma, sans-serif; }
-
-body { 
-    background-color: #f4f6f9; /* พื้นหลังสีเทาอ่อนแบบในรูป */
-    margin: 0; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    min-height: 100vh; 
-    padding: 16px;
-}
-
+/* --- ปรับแต่งกล่องหลักให้กว้างและเต็มหน้าจอมากขึ้น --- */
 .container { 
     background: white; 
-    padding: 30px 20px; 
-    border-radius: 12px; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-    width: 100%; 
-    max-width: 420px; 
+    padding: 40px 35px; /* เพิ่มพื้นที่ระยะห่างขอบในกล่อง */
+    border-radius: 16px; /* ขอบมนขึ้นเล็กน้อยให้ดูโมเดิร์น */
+    box-shadow: 0 4px 25px rgba(0,0,0,0.06); 
+    width: 90%; /* ยืดตามหน้าจอมือถือ */
+    max-width: 600px; /* เพิ่มความกว้างสูงสุดให้เต็มตาขึ้นจากเดิม 400px */
     text-align: center; 
 }
 
-input { 
-    width: 100%; 
-    padding: 14px; 
-    margin: 10px 0; 
-    border: 1px solid #ccc; 
-    border-radius: 8px; 
-    font-size: 16px; 
-}
-
-/* ตั้งค่าปุ่มใหม่ให้สวยและขนาดเท่าในรูป */
+/* --- ปรับแต่งปุ่มให้ใหญ่และยาวกว้างเต็มกล่อง --- */
 button { 
     width: 100%; 
-    padding: 16px; 
-    margin: 8px 0; 
+    padding: 18px; /* เพิ่มความหนาปุ่มให้กดง่ายเต็มมือ */
+    margin: 10px 0; /* เว้นระยะห่างบนล่างของแต่ละปุ่มไม่ให้ติดกันเกินไป */
     border: none; 
-    border-radius: 8px; 
-    font-size: 16px; 
+    border-radius: 10px; 
+    font-size: 18px; /* ขยายขนาดตัวอักษรปุ่มให้ชัดเจนขึ้น */
     font-weight: 500;
     cursor: pointer; 
     color: white; 
     background-color: #007bff; 
     transition: 0.2s ease; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
 button:hover { filter: brightness(0.9); }
-button:active { transform: scale(0.98); }
+button:active { transform: scale(0.99); }
 
-/* สีปุ่มตามดีไซน์ */
+/* --- สีปุ่มตามระบบเดิมของพี่ --- */
 .btn-admin { background-color: #dc3545; }
 .btn-warning { background-color: #ff9800; }
-.btn-logout { background-color: #6c757d; margin-top: 15px; }
+.btn-logout { background-color: #6c757d; margin-top: 30px; } /* ดันปุ่มออกจากระบบลงมาแยกโซนชัดเจน */
 
-h1, h2 { color: #333; margin-top: 0; margin-bottom: 25px; }
-p { color: #666; }
+h1, h2 { color: #333; margin-top: 0; margin-bottom: 35px; font-size: 28px; }
+p { color: #666; font-size: 16px; }
 
-/* --- ส่วนที่ใช้ดันชื่อไปไว้ขวาบน (Admin) --- */
-.relative-container {
-    position: relative;
-    padding-top: 60px; /* ดันเนื้อหาลงมา ไม่ให้หัวข้อทับกับชื่อ */
-}
-
-.user-status-top-right {
-    position: absolute;
-    top: 24px;
-    right: 24px;
-}
-
+/* --- จัดกลุ่มปุ่มแนวตั้ง (สำหรับหน้าแอดมิน) --- */
 .button-group {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 10px; /* ระยะห่างระหว่างปุ่มกำลังดี */
 }

@@ -1,11 +1,7 @@
-// ดึงลิงก์ API เดิมของพี่มาใช้งานสืบต่อระบบ
 const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec"; 
+let activeRequestsList = []; 
 
-let activeRequestsList = []; // เก็บตัวแปรจำอาร์เรย์รายการทั้งหมดที่ดึงมาจากชีต
-
-// โหลดข้อมูลอัตโนมัติเมื่อเปิดหน้าฟอร์มขึ้นมาครั้งแรก
 window.onload = function() {
-    // 1. ดึงชื่อแอดมินคนปัจจุบันจากระบบเก็บความจำบราวเซอร์ที่ทำไว้รอบที่แล้วมาแสดงผลล็อกไว้เลย
     const adminName = localStorage.getItem("userName");
     if (adminName) {
         document.getElementById("adminNameDisplay").value = "ผู้ดำเนินการ: " + adminName;
@@ -14,17 +10,14 @@ window.onload = function() {
         window.location.href = "index.html";
         return;
     }
-
-    // 2. สั่งเชื่อมฐานข้อมูลดึงรายการคำขอทันทีไม่ต้องพิมพ์
     loadPendingRequests();
 };
 
-// ฟังก์ชันเชื่อมข้อมูลไปหาชีตเพื่อเอาคำขอเบิกที่ค้างอยู่มาใช้
 async function loadPendingRequests() {
     try {
         const res = await fetch(API_URL, {
             method: "POST",
-            body: JSON.stringify({ action: "getData" }) // ลิงก์ดึงข้อมูลจากตาราง Log/Request ตัวที่เราทำกันรอบก่อน
+            body: JSON.stringify({ action: "getData" }) 
         });
         const result = await res.json();
         
@@ -32,7 +25,6 @@ async function loadPendingRequests() {
         selectElement.innerHTML = '<option value="">-- กรุณาเลือกรายการเบิกอุปกรณ์ --</option>';
 
         if (result.status === "success" && result.data.length > 0) {
-            // กรองหาเฉพาะรายการที่สถานะเป็น "ขอเบิก" หรือ "รอดำเนินการ" (ลิ้งก์จากฝั่ง User ที่เคยกดไว้)
             activeRequestsList = result.data.filter(item => item.status === "ขอเบิก" || item.status === "รอดำเนินการ");
 
             if(activeRequestsList.length === 0) {
@@ -42,7 +34,7 @@ async function loadPendingRequests() {
 
             activeRequestsList.forEach((req, idx) => {
                 const opt = document.createElement("option");
-                opt.value = idx; // ผูกดัชนีเข้ากับตำแหน่งของอาร์เรย์
+                opt.value = idx; 
                 opt.innerText = `คิวที่ ${idx + 1} | คุณ ${req.name} (${req.timestamp})`;
                 selectElement.appendChild(opt);
             });
@@ -55,44 +47,48 @@ async function loadPendingRequests() {
     }
 }
 
-// ทำงานอัตโนมัติเมื่อเลือกคิวขอเบิก (ไม่ต้องพิมข้อมูลใหม่)
+// ฟังก์ชันทำงานอัตโนมัติเมื่อเลือกคิวขอเบิก
 function onSelectRequest() {
     const selectIdx = document.getElementById("requestSelect").value;
-    const detailBox = document.getElementById("requestDetailBox");
+    const recipientGroup = document.getElementById("recipientGroup");
+    const recipientInput = document.getElementById("recipientName");
+    const countDisplay = document.getElementById("deviceCountDisplay");
     const tableBody = document.getElementById("checklistBody");
 
+    // ถ้าไม่ได้เลือกคิว ให้เคลียร์และซ่อนช่องข้อมูล
     if (selectIdx === "") {
-        detailBox.style.display = "none";
+        recipientGroup.style.display = "none";
+        recipientInput.value = "";
+        countDisplay.value = "";
         tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">กรุณาเลือกรายการขอเบิกด้านบนเพื่อสร้างรายการเครื่อง</td></tr>';
         return;
     }
 
-    // ดึงค่าไอเท็มที่เลือกผ่านดัชนีที่เซ็ตไว้
+    // ดึงค่าไอเท็มที่เลือก
     const selectedData = activeRequestsList[selectIdx];
-    
-    // 1. หยอดข้อมูลลงกล่องรายละเอียดผู้เบิกให้แบบ Real-time
-    document.getElementById("detailUser").innerText = selectedData.name;
-    // ตรวจสอบจำนวนเครื่อง ถ้าไม่มีการระบุชัดเจนใน Note ให้ตีเป็นค่าพื้นฐาน 1 เครื่อง หรือดึงตามตัวเลขจริง
     const count = parseInt(selectedData.note) || 1; 
-    document.getElementById("detailCount").innerText = count;
-    detailBox.style.display = "block";
+    
+    // โชว์กล่องและหยอดข้อมูลอัตโนมัติ
+    recipientGroup.style.display = "block";
+    recipientInput.value = selectedData.name;  // โชว์ชื่อผู้เบิก
+    countDisplay.value = count + " เครื่อง";   // โชว์จำนวนเครื่อง
 
-    // 2. สร้างแถวตารางเช็คลิสต์แอปอัตโนมัติตามจำนวนเครื่องตามดีไซน์ของพี่
+    // สร้างตารางเช็คลิสต์และช่องกรอกรหัสเครื่องตามจำนวนเครื่องที่ดึงมาได้
     tableBody.innerHTML = "";
     for(let i = 1; i <= count; i++) {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td><strong>เครื่องที่ ${i}</strong></td>
-            <td><input type="checkbox" class="chk-drive" checked></td>
-            <td><input type="checkbox" class="chk-file" checked></td>
-            <td><input type="checkbox" class="chk-img" checked></td>
-            <td><input type="checkbox" class="chk-safari" checked></td>
+            <td><input type="text" class="input-ipad-id form-control" placeholder="รหัสเครื่อง ${i}" required style="width: 110px;"></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox" checked></td>
         `;
         tableBody.appendChild(tr);
     }
 }
 
-// ฟังก์ชันกดส่งข้อมูลกลับไปบันทึก
+// ฟังก์ชันกดส่งข้อมูลบันทึก
 async function submitStep1Form() {
     const selectIdx = document.getElementById("requestSelect").value;
     if (selectIdx === "") {
@@ -100,35 +96,55 @@ async function submitStep1Form() {
         return;
     }
 
-    const selectedRequest = activeRequestsList[selectIdx];
     const adminName = localStorage.getItem("userName");
+    
+    // ดึงข้อมูลผู้รับและจำนวนเครื่อง
+    const recipientName = document.getElementById("recipientName").value.trim();
+    const countText = document.getElementById("deviceCountDisplay").value; // ดึงคำว่า "X เครื่อง" มาใช้ได้เลย
 
-    // ตรวจสอบเช็คลิสต์ทุกเครื่องว่าติ๊กถูกครบหรือไม่
+    if (recipientName === "") {
+        alert("กรุณาระบุชื่อ 'ผู้ที่จะมารับเครื่อง' ด้วยครับ!");
+        return;
+    }
+
+    // ตรวจสอบช่องกรอกรหัสเครื่อง
+    const idInputs = document.querySelectorAll('.input-ipad-id');
+    let ipadIdsArray = [];
+    let isAllFilled = true;
+
+    idInputs.forEach(input => {
+        if(input.value.trim() === "") isAllFilled = false;
+        else ipadIdsArray.push(input.value.trim());
+    });
+
+    if (!isAllFilled) {
+        alert("กรุณาระบุ 'รหัสเครื่อง' ให้ครบทุกรายการก่อนกดบันทึกครับ");
+        return;
+    }
+
+    // ตรวจสอบเช็คลิสต์
     const allCheckboxes = document.querySelectorAll('#checklistBody input[type="checkbox"]');
     let allChecked = true;
     allCheckboxes.forEach(chk => { if(!chk.checked) allChecked = false; });
 
     if (!allChecked) {
-        if (!confirm("พบเช็คลิสต์บางรายการยังไม่ได้ถูกตรวจสอบ ยืนยันที่จะบันทึกหรือไม่?")) {
-            return;
-        }
+        if (!confirm("พบเช็คลิสต์แอปบางรายการยังไม่ได้ติ๊ก ยืนยันที่จะบันทึกหรือไม่?")) return;
     }
 
     try {
-        // ส่งบันทึกคำสั่ง SaveLog เพื่ออัปเดตสถานะคิวนี้ว่าเตรียมเสร็จเรียบร้อยพร้อมใช้งาน
         await fetch(API_URL, {
             method: "POST",
             body: JSON.stringify({ 
-                action: "saveLog", 
-                name: selectedRequest.name, // อ้างอิงชื่อผู้เบิกเดิมตามข้อมูลที่ดึงมา
-                ipadId: "จัดเตรียมโดย: " + adminName, 
-                status: "เตรียมเครื่อง", 
-                note: "พร้อมใช้งาน (ตรวจสอบแอปเรียบร้อย)" 
+                action: "saveStep1", 
+                adminName: adminName, 
+                ipadIds: ipadIdsArray, 
+                // บันทึกหมายเหตุลงชีต แบบรวมชื่อและจำนวนเครื่องให้เรียบร้อย
+                note: `เตรียมให้: ${recipientName} (${countText}) | ตรวจสอบแอปเรียบร้อย` 
             })
         });
 
-        alert("ส่งรายงานข้อมูลจัดเตรียมเครื่อง Step 1 เรียบร้อยแล้วครับ!");
-        window.location.href = "admin.html"; // วาร์ปกลับหน้าหลักแดชบอร์ด
+        alert("บันทึกข้อมูลจัดเตรียมเครื่อง Step 1 ลงชีตเรียบร้อยแล้วครับ!");
+        window.location.href = "admin.html"; 
     } catch (error) {
         alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลฟอร์ม: " + error);
     }

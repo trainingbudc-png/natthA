@@ -42,12 +42,12 @@
                 </div>
             </div>
 
-            <p class="fw-bold text-dark mb-2">📋 รายการเช็คลิสต์และคีย์รหัสเครื่อง:</p>
+            <p class="fw-bold text-dark mb-2">📋 รายการเช็คลิสต์และเลือกรหัสเครื่อง:</p>
             <div class="table-responsive mb-4">
                 <table class="table table-bordered align-middle">
                     <thead>
                         <tr>
-                            <th style="width: 28%;">รหัสเครื่อง iPad</th>
+                            <th style="width: 28%;">เลือกรหัสเครื่อง iPad</th>
                             <th style="width: 18%;">Google Drive</th>
                             <th style="width: 18%;">แอป File</th>
                             <th style="width: 18%;">แอป รูปภาพ</th>
@@ -67,10 +67,29 @@
 </div>
 
 <script>
+    // 🔗 ลิงก์ API เดิมของระบบหลังบ้าน (ไม่ต้องแก้)
     const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec";
 
+    // ==========================================
+    // 📌 ตั้งค่ารายชื่อ iPad ในสต็อกทั้งหมด (80 เครื่อง)
+    // ==========================================
+    const ipadStockList = [
+        // ชุดที่ 1: iPad ปกติ เครื่องที่ 01-60
+        "iPad[01]", "iPad[02]", "iPad[03]", "iPad[04]", "iPad[05]", "iPad[06]", "iPad[07]", "iPad[08]", "iPad[09]", "iPad[10]",
+        "iPad[11]", "iPad[12]", "iPad[13]", "iPad[14]", "iPad[15]", "iPad[16]", "iPad[17]", "iPad[18]", "iPad[19]", "iPad[20]",
+        "iPad[21]", "iPad[22]", "iPad[23]", "iPad[24]", "iPad[25]", "iPad[26]", "iPad[27]", "iPad[28]", "iPad[29]", "iPad[30]",
+        "iPad[31]", "iPad[32]", "iPad[33]", "iPad[34]", "iPad[35]", "iPad[36]", "iPad[37]", "iPad[38]", "iPad[39]", "iPad[40]",
+        "iPad[41]", "iPad[42]", "iPad[43]", "iPad[44]", "iPad[45]", "iPad[46]", "iPad[47]", "iPad[48]", "iPad[49]", "iPad[50]",
+        "iPad[51]", "iPad[52]", "iPad[53]", "iPad[54]", "iPad[55]", "iPad[56]", "iPad[57]", "iPad[58]", "iPad[59]", "iPad[60]",
+        
+        // ชุดที่ 2: iPad Air + Apple Pencil เครื่องที่ 61-80
+        "iPad Air + APceil [61]", "iPad Air + APceil [62]", "iPad Air + APceil [63]", "iPad Air + APceil [64]", "iPad Air + APceil [65]",
+        "iPad Air + APceil [66]", "iPad Air + APceil [67]", "iPad Air + APceil [68]", "iPad Air + APceil [69]", "iPad Air + APceil [70]",
+        "iPad Air + APceil [71]", "iPad Air + APceil [72]", "iPad Air + APceil [73]", "iPad Air + APceil [74]", "iPad Air + APceil [75]",
+        "iPad Air + APceil [76]", "iPad Air + APceil [77]", "iPad Air + APceil [78]", "iPad Air + APceil [79]", "iPad Air + APceil [80]"
+    ];
+
     window.onload = function() {
-        // 1. ดึงข้อมูลชื่อแอดมินผู้เข้าใช้ระบบ
         const adminName = localStorage.getItem("userName");
         if (adminName) {
             document.getElementById("adminNameDisplay").value = "👨‍💻 ผู้ดำเนินการบันทึก: " + adminName;
@@ -80,7 +99,6 @@
             return;
         }
 
-        // 2. ดึงค่า Parameters ที่ลิ้งก์ส่งต่อข้ามหน้ามา
         const urlParams = new URLSearchParams(window.location.search);
         const nameParam = urlParams.get('name');
         const countParam = urlParams.get('count');
@@ -94,18 +112,27 @@
         const recipientName = decodeURIComponent(nameParam);
         const deviceCount = parseInt(countParam) || 1;
 
-        // 3. หยอดข้อมูลลงในช่องฟอร์ม
         document.getElementById("recipientName").value = recipientName;
         document.getElementById("deviceCountDisplay").value = deviceCount + " เครื่อง";
 
-        // 4. วนลูปสร้างแถวตารางเช็คลิสต์ตามจำนวนเครื่องจริง
+        // เตรียมแท็ก <option> สำหรับ Dropdown ดึงจากสต็อกที่เราตั้งไว้
+        let optionsHTML = '<option value="">-- เลือกเครื่อง --</option>';
+        ipadStockList.forEach(id => {
+            optionsHTML += `<option value="${id}">${id}</option>`;
+        });
+
         const tableBody = document.getElementById("checklistBody");
         tableBody.innerHTML = "";
         
+        // สร้างแถวเช็คลิสต์อัตโนมัติตามจำนวนเครื่อง
         for (let i = 1; i <= deviceCount; i++) {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td><input type="text" class="input-ipad-id form-control fw-bold text-center" placeholder="รหัสเครื่องที่ ${i}" required style="border-color: #cbd5e1;"></td>
+                <td>
+                    <select class="input-ipad-id form-select fw-bold text-center mx-auto" required style="border-color: #cbd5e1; font-size: 0.9rem;">
+                        ${optionsHTML}
+                    </select>
+                </td>
                 <td><input type="checkbox" class="chk-drive mx-auto d-block" checked></td>
                 <td><input type="checkbox" class="chk-file mx-auto d-block" checked></td>
                 <td><input type="checkbox" class="chk-img mx-auto d-block" checked></td>
@@ -124,12 +151,24 @@
         let ipadDataArray = [];
         let isAllFilled = true;
         let allChecked = true;
+        
+        // ตัวแปรเช็คเครื่องซ้ำ
+        let selectedIds = new Set();
+        let hasDuplicate = false;
 
         rows.forEach(row => {
             const idInput = row.querySelector('.input-ipad-id');
             if (idInput) {
-                const ipadId = idInput.value.trim();
-                if (ipadId === "") isAllFilled = false;
+                const ipadId = idInput.value; 
+                if (ipadId === "") {
+                    isAllFilled = false;
+                } else {
+                    // ตรวจสอบว่าเลือกเครื่องซ้ำกันหรือไม่ในฟอร์มเดียวกัน
+                    if(selectedIds.has(ipadId)) {
+                        hasDuplicate = true;
+                    }
+                    selectedIds.add(ipadId);
+                }
 
                 const isDriveChecked = row.querySelector('.chk-drive').checked;
                 const isFileChecked = row.querySelector('.chk-file').checked;
@@ -151,16 +190,21 @@
         });
 
         if (!isAllFilled) {
-            alert("❌ กรุณากรอก 'รหัสเครื่อง iPad' ให้ครบถ้วนทุกเครื่องก่อนส่งข้อมูลครับ");
+            alert("❌ กรุณาเลือกรหัสเครื่อง iPad ให้ครบทุกเครื่องก่อนส่งข้อมูลครับ");
+            return;
+        }
+        
+        // แจ้งเตือนถ้าแอดมินเผลอเลือกเครื่องซ้ำกันในรายการเดียว
+        if (hasDuplicate) {
+            alert("⚠️ คุณเลือกเครื่อง iPad ซ้ำกันครับ กรุณาตรวจสอบรหัสเครื่องใหม่อีกครั้ง");
             return;
         }
 
         if (!allChecked) {
-            if (!confirm("⚠️ พบว่าแอปบางรายการยังไม่ได้ติ๊กผ่าน คุณยืนยันที่จะส่งบันทึกแบบนี้ใช่หรือไม่?")) return;
+            if (!confirm("⚠️ พบว่าแอปบางรายการยังไม่ได้ติ๊กผ่าน ยืนยันที่จะส่งบันทึกแบบนี้ใช่หรือไม่?")) return;
         }
 
         try {
-            // ส่งค่าไปบันทึกที่ Google Apps Script หลังบ้าน (บันทึกเริ่มที่ช่อง F เคลียร์ช่อง E ว่างตามเดิม)
             await fetch(API_URL, {
                 method: "POST",
                 body: JSON.stringify({
@@ -172,7 +216,7 @@
             });
 
             alert("🎉 บันทึกประวัติและเช็คลิสต์ลง Google Sheets เรียบร้อยแล้วครับ!");
-            window.location.href = "admin.html"; // ย้ายกลับไปหน้าแรกของแอดมิน
+            window.location.href = "admin.html"; 
         } catch (error) {
             alert("เกิดข้อผิดพลาดในการบันทึกข้อมูลฟอร์ม: " + error);
         }

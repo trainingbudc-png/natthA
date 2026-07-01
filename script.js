@@ -96,4 +96,67 @@ window.onload = function() {
             document.getElementById("showName").innerText = "ผู้ใช้งาน LINE: " + userName;
         }
     }
+	
+// ฟังก์ชันดึงข้อมูลมาแสดงในตาราง
+async function fetchStatusData() {
+    const tbody = document.getElementById("statusTableBody");
+    if (!tbody) return; // ถ้าไม่ได้อยู่หน้า admin ให้ข้ามไป
+
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">กำลังโหลดข้อมูล... ⏳</td></tr>';
+
+    try {
+        // ส่งคำขอไปหา Google Apps Script ด้วย action: "getData"
+        const res = await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "getData" }) 
+        });
+        const data = await res.json();
+        
+        if (data.status === "success" && data.data.length > 0) {
+            tbody.innerHTML = ""; // ล้างข้อความกำลังโหลด
+            
+            // วนลูปสร้างแถวตาราง (สมมติว่าดึงย้อนหลังมา 10 รายการล่าสุด)
+            data.data.forEach((row, index) => {
+                // เซ็ตสีป้ายสถานะตามข้อความ (ปรับเปลี่ยนได้ตามต้องการ)
+                let statusColor = "#6c757d"; // สีเทา (ค่าเริ่มต้น)
+                if (row.status === "เตรียมเครื่อง" || row.status === "พร้อมใช้งาน") statusColor = "#dc3545"; // สีแดง
+                if (row.status === "รับเครื่องแล้ว" || row.status === "ตรวจคืน") statusColor = "#28a745"; // สีเขียว
+                if (row.status === "เครื่องมีปัญหา" || row.status === "รอดำเนินการ") statusColor = "#ff9800"; // สีส้ม
+                
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${row.timestamp}</td>
+                    <td>${row.name}</td>
+                    <td>${row.ipadId || "-"}</td>
+                    <td><span class="badge-status" style="background-color: ${statusColor}">${row.status}</span></td>
+                    <td>${row.note || "-"}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">ยังไม่มีข้อมูลการทำรายการ</td></tr>';
+        }
+    } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่</td></tr>';
+        console.error("Error fetching data:", error);
+    }
+}
+
+// อัปเดตตัวดักตรวจเมื่อหน้าเว็บโหลดเสร็จ (แก้จากของเดิมที่มีอยู่แล้ว)
+window.onload = function() {
+    if (window.location.pathname.includes("index.html") || window.location.pathname === "/") {
+        main();
+    } else {
+        const userName = localStorage.getItem("userName");
+        if(document.getElementById("showName") && userName) {
+            document.getElementById("showName").innerText = "ผู้ใช้งาน LINE: " + userName;
+        }
+        
+        // ถ้าอยู่หน้า admin ให้ดึงตารางเลย และตั้งเวลารีเฟรชทุกๆ 15 วินาที
+        if (window.location.pathname.includes("admin.html")) {
+            fetchStatusData();
+            setInterval(fetchStatusData, 15000); 
+        }
+    }
 };

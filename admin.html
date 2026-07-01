@@ -15,7 +15,7 @@
         <div class="nav-user-area">
             <span id="showName" class="user-status-text"></span>
             <button class="btn-logout-nav" onclick="logout()">ออกจากระบบ</button>
-        </div>
+        </div>	
     </nav>
 
     <div class="dashboard-wrapper">
@@ -63,5 +63,36 @@
     </div>
     
     <script src="script.js"></script>
+<br><br>
+
+        <div class="section-title" style="justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="title-bar" style="background-color: #28a745;"></div>
+                <h3>ตารางสถานะ iPad (อัปเดตล่าสุด)</h3>
+            </div>
+            <button onclick="fetchStatusData()" class="btn-refresh">🔄 โหลดข้อมูลใหม่</button>
+        </div>
+
+        <div class="table-container">
+            <table class="status-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>วัน-เวลาที่บันทึก</th>
+                        <th>ผู้ดำเนินการ</th>
+                        <th>รหัส iPad</th>
+                        <th>สถานะ / ขั้นตอน</th>
+                        <th>หมายเหตุ</th>
+                    </tr>
+                </thead>
+                <tbody id="statusTableBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px;">กำลังโหลดข้อมูล... ⏳</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div> <script src="script.js"></script>
 </body>
 </html>

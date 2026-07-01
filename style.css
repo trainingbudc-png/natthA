@@ -114,3 +114,68 @@ p { color: #666; }
 
 .card-detail h4 { margin: 0 0 5px 0; font-size: 18px; color: #222; }
 .card-detail p { margin: 0; font-size: 14px; color: #777; }
+/* =========================================
+   สไตล์ตารางข้อมูล (Data Table)
+   ========================================= */
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* ถ้าจอมือถือเล็ก จะสามารถปัดซ้ายขวาดูตารางได้ */
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid #e1e4e8;
+}
+
+.status-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+}
+
+.status-table th, .status-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.status-table th {
+    background-color: #f8f9fa;
+    color: #444;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.status-table tbody tr:nth-child(even) {
+    background-color: #fafbfc; /* สลับสีแถวให้อ่านง่ายแบบในรูป */
+}
+
+.status-table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+/* ป้ายสีบอกสถานะ */
+.badge-status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+    display: inline-block;
+}
+
+/* ปุ่มรีเฟรชตาราง */
+.btn-refresh {
+    background-color: #ffffff;
+    color: #555;
+    border: 1px solid #ddd;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    transition: 0.2s;
+}
+.btn-refresh:hover {
+    background-color: #f8f9fa;
+    border-color: #bbb;
+}

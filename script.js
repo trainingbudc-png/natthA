@@ -3,7 +3,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67n
 const LIFF_ID = "2010557323-PAyWhGxW"; 
 
 // =========================================
-// [ระบบใหม่] ฟังก์ชันเปิด/ปิด หน้า Loading
+// ฟังก์ชันเปิด/ปิด หน้า Loading
 // =========================================
 function showLoading() {
     const overlay = document.getElementById("loadingOverlay");
@@ -16,31 +16,31 @@ function hideLoading() {
 }
 
 // =========================================
-// 1. ระบบ LINE Login
+// 1. ระบบ LINE Login (แก้ไขการแสดง Loading)
 // =========================================
-async function main() {
-    showLoading(); // โชว์โหลดตอนเริ่มเชื่อมต่อ LIFF
-    
-    await liff.init({ liffId: LIFF_ID });
+async function initLiffOnLoad() {
+    await liff.init({ liffId: LIFF_ID }); // เชื่อมต่อ LINE แบบเงียบๆ ไม่โชว์โหลด
     
     if (liff.isLoggedIn()) {
+        showLoading(); // โชว์หน้าโหลด เฉพาะตอนที่พบว่ามีค้างล็อกอินและกำลังดึงข้อมูล
         const profile = await liff.getProfile();
         const name = profile.displayName; 
         
         localStorage.setItem("userName", name);
-        await checkUserRole(name); // รอเช็คสิทธิ์ (หน้าโหลดยังหมุนอยู่)
+        await checkUserRole(name); 
     } else {
-        hideLoading(); // ถ้ายังไม่ล็อกอิน ให้ปิดหน้าโหลด เพื่อโชว์ปุ่มสีเขียวให้ผู้ใช้กด
+        hideLoading(); // ปิดหน้าโหลดชัวร์ๆ ให้เห็นปุ่มสีเขียว
     }
 }
 
 function loginWithLine() {
-    showLoading(); // กดปุ่มปุ๊บ ให้หน้าโหลดเด้งขึ้นมาปั๊บ
+    showLoading(); // พอกดปุ่มสีเขียวปุ๊บ ค่อยโชว์หน้าโหลด
     
     if (!liff.isLoggedIn()) {
         liff.login(); 
     } else {
-        main();
+        // ถ้าล็อกอินค้างไว้อยู่แล้ว ให้ไปเช็คสิทธิ์เลย
+        initLiffOnLoad();
     }
 }
 
@@ -55,14 +55,13 @@ async function checkUserRole(name) {
         });
         const data = await res.json();
         
-        // เมื่อเช็คเสร็จ ระบบจะเปลี่ยนหน้าเว็บ (วาร์ป) ไปเอง โดยที่หน้าโหลดยังบังอยู่ ทำให้ดูเนียนตา
         if (data.role === "Admin") {
-            window.location.href = "admin.html";
+            window.location.replace("admin.html");
         } else {
-            window.location.href = "user.html";
+            window.location.replace("user.html");
         }
     } catch (error) {
-        hideLoading(); // ถ้าพัง ให้ปิดหน้าโหลดจะได้เห็นกล่องเตือน
+        hideLoading(); 
         alert("เกิดข้อผิดพลาดในการเช็คสิทธิ์ กรุณาตรวจสอบ Apps Script");
     }
 }
@@ -86,7 +85,6 @@ async function sendData(status, note) {
         });
         alert("บันทึก [" + status + "] สำเร็จ!");
 
-        // หากอยู่หน้าแอดมิน ให้รีเฟรชตารางหลังกดปุ่มเสร็จทันที
         if (window.location.pathname.includes("admin.html")) {
             fetchStatusData();
         }
@@ -96,7 +94,7 @@ async function sendData(status, note) {
 }
 
 // =========================================
-// 4. ดึงข้อมูลมาแสดงในตารางหน้า Admin (กดโหลดเองแบบ Manual)
+// 4. ดึงข้อมูลมาแสดงในตารางหน้า Admin 
 // =========================================
 async function fetchStatusData() {
     const tbody = document.getElementById("statusTableBody");
@@ -120,7 +118,6 @@ async function fetchStatusData() {
                 if (row.status === "รับเครื่องแล้ว" || row.status === "ตรวจคืน") statusColor = "#28a745"; 
                 if (row.status === "เครื่องมีปัญหา" || row.status === "รอดำเนินการ") statusColor = "#ff9800"; 
                 
-                // แปลงฟอร์แมตวันที่จากระบบเป็นภาษาไทย
                 let displayTime = "-";
                 if (row.timestamp) {
                     displayTime = new Date(row.timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
@@ -147,16 +144,14 @@ async function fetchStatusData() {
 }
 
 // =========================================
-// 5. ออกจากระบบ (ฉบับแก้ไขบั๊กเด้งกลับหน้าเดิม)
+// 5. ออกจากระบบ
 // =========================================
 async function logout() {
-    // 1. เคลียร์ชื่อออกจากความจำบราว์เซอร์ก่อนเลย
+    showLoading(); // โชว์โหลดตอนกดออกจากระบบด้วย จะได้ดูเนียนๆ
     localStorage.removeItem("userName");
 
     try {
         await liff.init({ liffId: LIFF_ID });
-        
-        // 2. ตรวจสอบว่าล็อกอิน LINE ค้างไว้ไหม ถ้าค้างให้สั่ง Logout ออกจากระบบ LINE LIFF ด้วย
         if (liff.isLoggedIn()) {
             liff.logout(); 
         }
@@ -164,7 +159,6 @@ async function logout() {
         console.log("ออกระบบ LINE ไม่สำเร็จ: ", error);
     }
     
-    // 3. พาเด้งกลับไปหน้าแรก ย้ายไปใช้ index.html แบบกำหนดเส้นทางชัดเจน
     window.location.replace("index.html");
 }
 
@@ -173,14 +167,14 @@ async function logout() {
 // =========================================
 window.onload = function() {
     if (window.location.pathname.includes("index.html") || window.location.pathname === "/") {
-        main(); // เรียกใช้ main ซึ่งตอนนี้จะทำการโชว์หน้าโหลดให้แล้ว
+        // ใช้ initLiffOnLoad แทน main() เพื่อไม่ให้หน้าโหลดเด้งขึ้นมาเอง
+        initLiffOnLoad(); 
     } else {
         const userName = localStorage.getItem("userName");
         if(document.getElementById("showName") && userName) {
             document.getElementById("showName").innerText = "ผู้ใช้งาน LINE: " + userName;
         }
         
-        // ถ้าเป็นหน้า Admin ให้รันตารางแค่ 1 ครั้งตอนเปิดหน้าจอ (ไม่มีการโหลดอัตโนมัติซ้ำซ้อน)
         if (window.location.pathname.includes("admin.html")) {
             fetchStatusData();
         }

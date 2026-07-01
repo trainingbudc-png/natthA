@@ -16,30 +16,34 @@ function hideLoading() {
 }
 
 // =========================================
-// 1. ระบบ LINE Login (แก้ไขการแสดง Loading)
+// 1. ระบบ LINE Login (ปรับปรุงตัวเช็คระบบอัตโนมัติ)
 // =========================================
 async function initLiffOnLoad() {
-    await liff.init({ liffId: LIFF_ID }); // เชื่อมต่อ LINE แบบเงียบๆ ไม่โชว์โหลด
+    await liff.init({ liffId: LIFF_ID }); 
     
-    if (liff.isLoggedIn()) {
-        showLoading(); // โชว์หน้าโหลด เฉพาะตอนที่พบว่ามีค้างล็อกอินและกำลังดึงข้อมูล
+    // เช็คว่าผู้ใช้เพิ่งกดปุ่มออกจากระบบมาหรือไม่
+    const isLoggedOut = localStorage.getItem("justLoggedOut");
+    
+    if (liff.isLoggedIn() && !isLoggedOut) {
+        showLoading(); // โชว์หน้าโหลดเฉพาะตอนล็อกอินค้างและผ่านเงื่อนไขดึงข้อมูล
         const profile = await liff.getProfile();
         const name = profile.displayName; 
         
         localStorage.setItem("userName", name);
         await checkUserRole(name); 
     } else {
-        hideLoading(); // ปิดหน้าโหลดชัวร์ๆ ให้เห็นปุ่มสีเขียว
+        hideLoading(); // ปิดหน้าโหลดสนิทเพื่อให้เห็นปุ่มสีเขียวแน่นอน
     }
 }
 
 function loginWithLine() {
-    showLoading(); // พอกดปุ่มสีเขียวปุ๊บ ค่อยโชว์หน้าโหลด
+    showLoading(); 
+    // เมื่อผู้ใช้ตั้งใจกดเข้าสู่ระบบด้วยตัวเอง ให้ล้างเงื่อนไขจำสถานะ Logout ออกไป
+    localStorage.removeItem("justLoggedOut");
     
     if (!liff.isLoggedIn()) {
         liff.login(); 
     } else {
-        // ถ้าล็อกอินค้างไว้อยู่แล้ว ให้ไปเช็คสิทธิ์เลย
         initLiffOnLoad();
     }
 }
@@ -144,11 +148,15 @@ async function fetchStatusData() {
 }
 
 // =========================================
-// 5. ออกจากระบบ
+// 5. ออกจากระบบ (ล็อกสิทธิ์จำสถานะเพื่อแก้บั๊ก)
 // =========================================
 async function logout() {
-    showLoading(); // โชว์โหลดตอนกดออกจากระบบด้วย จะได้ดูเนียนๆ
+    showLoading(); 
+    
+    // 1. ล้างข้อมูลชื่อผู้ใช้
     localStorage.removeItem("userName");
+    // 2. ตั้งสถานะบอกระบบหน้าบ้านไว้ว่า "เพิ่งกดปุ่มออกจากระบบมานะ"
+    localStorage.setItem("justLoggedOut", "true");
 
     try {
         await liff.init({ liffId: LIFF_ID });
@@ -167,9 +175,11 @@ async function logout() {
 // =========================================
 window.onload = function() {
     if (window.location.pathname.includes("index.html") || window.location.pathname === "/") {
-        // ใช้ initLiffOnLoad แทน main() เพื่อไม่ให้หน้าโหลดเด้งขึ้นมาเอง
         initLiffOnLoad(); 
     } else {
+        // เมื่อไม่ได้อยู่หน้าแรก (เข้าสู่ระบบสำเร็จจนไปหน้าอื่นแล้ว) ให้ล้างสถานะล็อกเอาท์ทิ้งไป
+        localStorage.removeItem("justLoggedOut");
+        
         const userName = localStorage.getItem("userName");
         if(document.getElementById("showName") && userName) {
             document.getElementById("showName").innerText = "ผู้ใช้งาน LINE: " + userName;

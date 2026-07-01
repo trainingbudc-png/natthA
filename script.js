@@ -2,7 +2,9 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec"; 
 const LIFF_ID = "2010557323-PAyWhGxW"; 
 
+// =========================================
 // 1. ระบบ LINE Login
+// =========================================
 async function main() {
     await liff.init({ liffId: LIFF_ID });
     if (liff.isLoggedIn()) {
@@ -22,7 +24,9 @@ function loginWithLine() {
     }
 }
 
+// =========================================
 // 2. เช็คสิทธิ์ Admin / User
+// =========================================
 async function checkUserRole(name) {
     try {
         const res = await fetch(API_URL, {
@@ -41,7 +45,9 @@ async function checkUserRole(name) {
     }
 }
 
+// =========================================
 // 3. ส่งข้อมูลบันทึกสถานะ
+// =========================================
 async function sendData(status, note) {
     const name = localStorage.getItem("userName");
     
@@ -58,7 +64,7 @@ async function sendData(status, note) {
         });
         alert("บันทึก [" + status + "] สำเร็จ!");
 
-        // หากอยู่หน้าแอดมิน ให้รีเฟรชตารางหลังกดปุ่มเสร็จทันที
+        // หากอยู่หน้าแอดมิน ให้รีเฟรชตารางหลังกดปุ่มเสร็จทันทีเพื่อให้ข้อมูลอัปเดต
         if (window.location.pathname.includes("admin.html")) {
             fetchStatusData();
         }
@@ -67,7 +73,9 @@ async function sendData(status, note) {
     }
 }
 
-// 4. (ใหม่) ดึงข้อมูลมาแสดงในตารางหน้า Admin
+// =========================================
+// 4. ดึงข้อมูลมาแสดงในตารางหน้า Admin (กดโหลดเองแบบ Manual)
+// =========================================
 async function fetchStatusData() {
     const tbody = document.getElementById("statusTableBody");
     if (!tbody) return; // ถ้าไม่ได้อยู่หน้า admin ให้ข้ามไป
@@ -92,10 +100,16 @@ async function fetchStatusData() {
                 if (row.status === "รับเครื่องแล้ว" || row.status === "ตรวจคืน") statusColor = "#28a745"; // สีเขียว
                 if (row.status === "เครื่องมีปัญหา" || row.status === "รอดำเนินการ") statusColor = "#ff9800"; // สีส้ม
                 
+                // แปลงฟอร์แมตวันที่จากระบบ ISO ให้เป็น วัน/เดือน/ปี เวลา แบบไทยอ่านง่าย
+                let displayTime = "-";
+                if (row.timestamp) {
+                    displayTime = new Date(row.timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+                }
+
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${row.timestamp ? new Date(row.timestamp).toLocaleString('th-TH', {dateStyle: 'short', timeStyle: 'short'}) : "-"}</td>
+                    <td>${displayTime}</td>
                     <td>${row.name || "-"}</td>
                     <td>${row.ipadId || "-"}</td>
                     <td><span class="badge-status" style="background-color: ${statusColor}">${row.status || "-"}</span></td>
@@ -107,13 +121,14 @@ async function fetchStatusData() {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">ยังไม่มีข้อมูลการทำรายการ</td></tr>';
         }
     } catch (error) {
-        // ถ้าขึ้นบรรทัดนี้ แสดงว่าฝั่ง Code.gs ยังไม่ได้เขียนคำสั่งรับ action: "getData" นะครับ
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">ไม่สามารถดึงข้อมูลได้ (โปรดตรวจสอบการตั้งค่า Code.gs)</td></tr>';
         console.error("Error fetching data:", error);
     }
 }
 
+// =========================================
 // 5. ออกจากระบบ
+// =========================================
 async function logout() {
     try {
         await liff.init({ liffId: LIFF_ID });
@@ -128,7 +143,9 @@ async function logout() {
     window.location.href = "index.html";
 }
 
+// =========================================
 // 6. ตัวดักตอนโหลดหน้าเว็บ
+// =========================================
 window.onload = function() {
     if (window.location.pathname.includes("index.html") || window.location.pathname === "/") {
         main();
@@ -138,19 +155,7 @@ window.onload = function() {
             document.getElementById("showName").innerText = "ผู้ใช้งาน LINE: " + userName;
         }
         
-        
-    }
-	// 6. ตัวดักตอนโหลดหน้าเว็บ (อัปเดตตัวสั่งรันตารางตอนเปิดหน้า)
-window.onload = function() {
-    if (window.location.pathname.includes("index.html") || window.location.pathname === "/") {
-        main();
-    } else {
-        const userName = localStorage.getItem("userName");
-        if(document.getElementById("showName") && userName) {
-            document.getElementById("showName").innerText = "ผู้ใช้งาน LINE: " + userName;
-        }
-        
-        // เพิ่มตรงนี้กลับเข้าไป: สั่งให้ดึงข้อมูลตาราง 1 ครั้งตอนเปิดหน้า admin.html (ไม่มีการรันซ้ำอัตโนมัติ)
+        // ถ้าเป็นหน้า Admin ให้รันตารางแค่ 1 ครั้งตอนเปิดหน้าจอ (ไม่มีการโหลดอัตโนมัติซ้ำซ้อน)
         if (window.location.pathname.includes("admin.html")) {
             fetchStatusData();
         }

@@ -148,8 +148,13 @@ async function fetchStatusData() {
 // 5. ออกจากระบบ
 // =========================================
 async function logout() {
+    // 1. เคลียร์ชื่อออกจากความจำบราว์เซอร์ก่อนเลย
+    localStorage.removeItem("userName");
+
     try {
         await liff.init({ liffId: LIFF_ID });
+        
+        // 2. ตรวจสอบว่าล็อกอิน LINE ค้างไว้ไหม ถ้าค้างให้สั่ง Logout ออกจากระบบ LINE LIFF ด้วย
         if (liff.isLoggedIn()) {
             liff.logout(); 
         }
@@ -157,8 +162,8 @@ async function logout() {
         console.log("ออกระบบ LINE ไม่สำเร็จ: ", error);
     }
     
-    localStorage.removeItem("userName");
-    window.location.href = "index.html";
+    // 3. พาเด้งกลับไปหน้าแรก ย้ายไปใช้ index.html แบบกำหนดเส้นทางชัดเจน
+    window.location.replace("index.html");
 }
 
 // =========================================

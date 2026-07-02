@@ -3,27 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ตรวจสอบอุปกรณ์และยืนยันรับเครื่อง</title>
+    <title>ตรวจสอบและยืนยันรับเครื่อง</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background: #f1f5f9; font-family: 'Sarabun', sans-serif; padding: 20px; }
-        .confirm-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 700px; margin: auto; }
+        .confirm-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 800px; margin: auto; }
         .btn-confirm { background: #10b981; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: 100%; margin-top: 20px; }
-        .btn-confirm:disabled { background: #cbd5e1; }
-        th { font-size: 0.9rem; }
+        .btn-confirm:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .table-responsive { overflow-x: auto; }
     </style>
 </head>
 <body>
 
 <div class="confirm-card">
-    <h4 class="text-center fw-bold">📋 ตรวจสอบแอปพลิเคชันก่อนรับ</h4>
+    <h4 class="text-center fw-bold">📋 ตรวจสอบอุปกรณ์ก่อนรับ</h4>
     <p class="text-center text-muted">รายการ: <span id="reqIdDisp" class="fw-bold text-primary">กำลังโหลด...</span></p>
 
     <div class="table-responsive">
         <table class="table table-bordered align-middle text-center">
             <thead class="table-light">
                 <tr>
-                    <th>iPad</th>
+                    <th>เลือกรับ</th>
+                    <th>iPad ID</th>
                     <th>Drive</th>
                     <th>File</th>
                     <th>Img</th>
@@ -31,7 +32,7 @@
                 </tr>
             </thead>
             <tbody id="itemList">
-                <tr><td colspan="5">กำลังโหลดรายการเครื่อง...</td></tr>
+                <tr><td colspan="6">กำลังโหลดข้อมูล...</td></tr>
             </tbody>
         </table>
     </div>
@@ -43,7 +44,7 @@
 
     <div class="form-check mt-3">
         <input class="form-check-input" type="checkbox" id="checkFinal" onchange="validateForm()">
-        <label class="form-check-label small" for="checkFinal">ข้าพเจ้าตรวจสอบสภาพเครื่องและแอปพลิเคชันครบทุกข้อแล้ว</label>
+        <label class="form-check-label small" for="checkFinal">ข้าพเจ้าตรวจสอบสภาพเครื่องและแอปพลิเคชันของเครื่องที่เลือกครบทุกข้อแล้ว</label>
     </div>
 
     <button id="btnSubmit" class="btn btn-confirm" onclick="submitReceipt()" disabled>✅ ยืนยันการรับเครื่อง</button>
@@ -65,6 +66,7 @@
         tbody.innerHTML = "";
         res.data.forEach((item) => {
             tbody.innerHTML += `<tr>
+                <td><input type="checkbox" class="form-check-input select-ipad" onchange="validateForm()"></td>
                 <td class="fw-bold">${item.ipadId}</td>
                 <td><input type="checkbox" class="form-check-input check-app" onchange="validateForm()"></td>
                 <td><input type="checkbox" class="form-check-input check-app" onchange="validateForm()"></td>
@@ -75,10 +77,18 @@
     });
 
     function validateForm() {
-        const apps = document.querySelectorAll('.check-app');
-        const finalCheck = document.getElementById('checkFinal').checked;
-        const allAppsChecked = Array.from(apps).every(cb => cb.checked);
-        document.getElementById('btnSubmit').disabled = !(allAppsChecked && finalCheck);
+        const selectedIpads = document.querySelectorAll('.select-ipad:checked');
+        const finalChecked = document.getElementById('checkFinal').checked;
+        
+        let allAppsChecked = true;
+        selectedIpads.forEach(ipad => {
+            const row = ipad.closest('tr');
+            const apps = row.querySelectorAll('.check-app');
+            apps.forEach(app => { if(!app.checked) allAppsChecked = false; });
+        });
+
+        // ปลดล็อกปุ่มเมื่อ: มีการเลือกเครื่องอย่างน้อย 1 เครื่อง + เครื่องที่เลือกเช็คครบทุกแอป + ติ๊กยืนยันท้ายสุด
+        document.getElementById('btnSubmit').disabled = !(selectedIpads.length > 0 && allAppsChecked && finalChecked);
     }
 
     async function submitReceipt() {

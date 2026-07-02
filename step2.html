@@ -2,49 +2,61 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>ยืนยันรับอุปกรณ์</title>
+    <title>ตรวจสอบและรับอุปกรณ์</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background: #f8fafc; font-family: 'Sarabun', sans-serif; display: flex; justify-content: center; padding-top: 50px; }
-        .confirm-box { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
-        .status-badge { background: #e0f2fe; color: #0284c7; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+        body { background: #f1f5f9; padding: 20px; font-family: 'Sarabun', sans-serif; }
+        .confirm-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        .checklist-item { border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 10px; border-radius: 10px; display: flex; align-items: center; }
+        .btn-confirm { background: #10b981; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: 100%; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-<div class="confirm-box">
-    <h5>ยืนยันการรับเครื่อง</h5>
-    <div class="my-4">
-        <span class="status-badge" id="reqIdText">กำลังโหลดรายการ...</span>
+<div class="confirm-card">
+    <h4 class="text-center mb-4">✅ ตรวจสอบสภาพเครื่องก่อนรับ</h4>
+    <div id="checkListContainer">
+        <p class="text-muted text-center">กำลังโหลดข้อมูลรายการ: <span id="reqIdDisp"></span></p>
     </div>
-    <p>กดปุ่มด้านล่างเพื่อยืนยันว่าได้รับอุปกรณ์เรียบร้อยแล้ว</p>
-    <button id="btnConfirm" class="btn btn-success w-100 py-3 mt-3" onclick="confirmReceipt()">✅ ยืนยันการรับเครื่อง</button>
+    
+    <button id="btnSubmit" class="btn btn-confirm" onclick="submitReceipt()" disabled>ยืนยันการรับเครื่อง</button>
 </div>
 
 <script>
-    // ดึง reqId จาก URL ทันที
-    const urlParams = new URLSearchParams(window.location.search);
-    const reqId = urlParams.get('reqId');
-    document.getElementById('reqIdText').innerText = reqId;
+    const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec";
+    const reqId = new URLSearchParams(window.location.search).get('reqId');
+    document.getElementById('reqIdDisp').innerText = reqId;
 
-    async function confirmReceipt() {
-        const btn = document.getElementById('btnConfirm');
+    // จำลองการโหลดข้อมูล (ในอนาคตถ้าอยากได้ชื่อเครื่องเป๊ะๆ ต้องเขียนฟังก์ชันดึงจาก Google Sheet มาโชว์ที่นี่ครับ)
+    // สำหรับตอนนี้เราเน้น Checklist ยืนยันเครื่องที่เตรียมไว้ครับ
+    const items = ["สภาพภายนอกสมบูรณ์", "หน้าจอไม่มีรอยขีดข่วน", "แบตเตอรี่ชาร์จเข้า", "กล้องและปุ่มใช้งานได้"];
+    
+    const container = document.getElementById('checkListContainer');
+    items.forEach((item, index) => {
+        container.innerHTML += `
+            <div class="checklist-item">
+                <input type="checkbox" class="form-check-input me-3" id="check${index}" onchange="checkAll()">
+                <label for="check${index}">${item}</label>
+            </div>
+        `;
+    });
+
+    function checkAll() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+        document.getElementById('btnSubmit').disabled = !allChecked;
+    }
+
+    async function submitReceipt() {
+        const btn = document.getElementById('btnSubmit');
         btn.innerText = "กำลังบันทึก...";
-        btn.disabled = true;
-
-        // เรียกใช้ฟังก์ชันผ่าน API ชุดเดิมที่มีอยู่ (ไม่ต้องสร้างใหม่)
-        fetch("https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec", {
+        
+        await fetch(API_URL, {
             method: "POST",
-            body: JSON.stringify({ 
-                action: "updateStatus", 
-                reqId: reqId, 
-                name: "ผู้ใช้ยืนยันผ่านมือถือ", 
-                status: "รับเครื่องแล้ว" 
-            })
-        }).then(() => {
-            alert("ยืนยันเรียบร้อยแล้วครับ!");
-            window.location.href = "index.html";
+            body: JSON.stringify({ action: "updateStatus", reqId: reqId, name: "ผู้ใช้ยืนยันผ่านมือถือ", status: "รับเครื่องแล้ว" })
         });
+        alert("บันทึกการรับเครื่องเรียบร้อย!");
+        window.location.href = "index.html";
     }
 </script>
 </body>

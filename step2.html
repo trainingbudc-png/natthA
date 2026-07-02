@@ -2,23 +2,35 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>ตรวจสอบและรับอุปกรณ์</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตรวจสอบและยืนยันการรับอุปกรณ์</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background: #f1f5f9; padding: 20px; font-family: 'Sarabun', sans-serif; }
-        .confirm-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        .checklist-item { border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 10px; border-radius: 10px; display: flex; align-items: center; }
+        body { background: #f1f5f9; font-family: 'Sarabun', sans-serif; padding: 20px; }
+        .confirm-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 600px; margin: auto; }
+        .table { margin-top: 20px; }
         .btn-confirm { background: #10b981; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: 100%; margin-top: 20px; }
+        .btn-confirm:disabled { background: #cbd5e1; }
     </style>
 </head>
 <body>
 
 <div class="confirm-card">
-    <h4 class="text-center mb-4">✅ ตรวจสอบสภาพเครื่องก่อนรับ</h4>
-    <div id="checkListContainer">
-        <p class="text-muted text-center">กำลังโหลดข้อมูลรายการ: <span id="reqIdDisp"></span></p>
+    <h4 class="text-center fw-bold">📋 ตรวจสอบรายการอุปกรณ์</h4>
+    <p class="text-center text-muted">รายการ: <span id="reqIdDisp" class="fw-bold text-primary">กำลังโหลด...</span></p>
+
+    <table class="table table-bordered text-center">
+        <thead class="table-light">
+            <tr><th>iPad ID</th><th>Drive</th><th>File</th><th>Img</th><th>Safari</th></tr>
+        </thead>
+        <tbody id="itemList"></tbody>
+    </table>
+
+    <div class="form-check mt-4">
+        <input class="form-check-input" type="checkbox" id="checkFinal" onchange="document.getElementById('btnSubmit').disabled = !this.checked">
+        <label class="form-check-label" for="checkFinal">ข้าพเจ้าตรวจสอบอุปกรณ์ข้างต้นครบถ้วนและได้รับเครื่องเรียบร้อยแล้ว</label>
     </div>
-    
+
     <button id="btnSubmit" class="btn btn-confirm" onclick="submitReceipt()" disabled>ยืนยันการรับเครื่อง</button>
 </div>
 
@@ -27,36 +39,34 @@
     const reqId = new URLSearchParams(window.location.search).get('reqId');
     document.getElementById('reqIdDisp').innerText = reqId;
 
-    // จำลองการโหลดข้อมูล (ในอนาคตถ้าอยากได้ชื่อเครื่องเป๊ะๆ ต้องเขียนฟังก์ชันดึงจาก Google Sheet มาโชว์ที่นี่ครับ)
-    // สำหรับตอนนี้เราเน้น Checklist ยืนยันเครื่องที่เตรียมไว้ครับ
-    const items = ["สภาพภายนอกสมบูรณ์", "หน้าจอไม่มีรอยขีดข่วน", "แบตเตอรี่ชาร์จเข้า", "กล้องและปุ่มใช้งานได้"];
-    
-    const container = document.getElementById('checkListContainer');
-    items.forEach((item, index) => {
-        container.innerHTML += `
-            <div class="checklist-item">
-                <input type="checkbox" class="form-check-input me-3" id="check${index}" onchange="checkAll()">
-                <label for="check${index}">${item}</label>
-            </div>
-        `;
+    // ดึงข้อมูลจาก Step 1 มาแสดง
+    fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "getStep1Data", reqId: reqId })
+    })
+    .then(res => res.json())
+    .then(res => {
+        const tbody = document.getElementById('itemList');
+        res.data.forEach(item => {
+            tbody.innerHTML += `<tr>
+                <td>${item.ipadId}</td>
+                <td>${item.drive ? '✅' : '❌'}</td>
+                <td>${item.file ? '✅' : '❌'}</td>
+                <td>${item.img ? '✅' : '❌'}</td>
+                <td>${item.safari ? '✅' : '❌'}</td>
+            </tr>`;
+        });
     });
-
-    function checkAll() {
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-        document.getElementById('btnSubmit').disabled = !allChecked;
-    }
 
     async function submitReceipt() {
         const btn = document.getElementById('btnSubmit');
         btn.innerText = "กำลังบันทึก...";
-        
         await fetch(API_URL, {
             method: "POST",
             body: JSON.stringify({ action: "updateStatus", reqId: reqId, name: "ผู้ใช้ยืนยันผ่านมือถือ", status: "รับเครื่องแล้ว" })
         });
-        alert("บันทึกการรับเครื่องเรียบร้อย!");
-        window.location.href = "index.html";
+        alert("บันทึกการรับเครื่องเรียบร้อยครับ!");
+        window.close();
     }
 </script>
 </body>

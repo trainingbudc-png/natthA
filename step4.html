@@ -8,25 +8,55 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body { background: #f1f5f9; font-family: 'Kanit', sans-serif; padding: 20px; }
-        .confirm-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 1000px; margin: auto; overflow: hidden; }
+        .confirm-card { background: white; padding: 0; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); max-width: 1000px; margin: auto; overflow: hidden; }
         
-        /* สไตล์หัวตารางม่วง */
-        .purple-header { background-color: #6d28d9; color: white; padding: 15px 20px; font-weight: 600; border-radius: 12px 12px 0 0; margin-bottom: 0; }
+        /* สไตล์หัวตารางสีม่วง */
+        .purple-header { background-color: #7c3aed; color: white; padding: 20px; font-weight: 600; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+        .req-id-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 8px; font-size: 0.9rem; }
         
-        .table th { font-size: 0.8rem; vertical-align: middle; text-align: center; color: #475569; background: #f8fafc; }
-        .table td { vertical-align: middle; text-align: center; }
-        .check-item { width: 20px; height: 20px; cursor: pointer; accent-color: #6d28d9; }
+        /* กล่องแสดงข้อมูลรายการและคนคืน (เพิ่มใหม่) */
+        .info-panel { padding: 15px 20px; background: #f5f3ff; border-bottom: 1px solid #ddd6fe; display: flex; justify-content: space-around; align-items: center; }
+        .info-label { font-size: 0.85rem; color: #6d28d9; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+        .info-value { font-size: 1.1rem; font-weight: bold; color: #4c1d95; }
+        .divider { width: 1px; background-color: #ddd6fe; height: 40px; }
         
-        .btn-confirm { background: #6d28d9; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: 100%; border: none; transition: 0.3s; margin-top: 20px; }
-        .btn-confirm:hover { background: #5b21b6; color: white; }
+        .table { margin-bottom: 0 !important; }
+        .table th { font-size: 0.85rem; vertical-align: middle; text-align: center; color: #4b5563; background: #f9fafb; padding: 12px; }
+        .table td { vertical-align: middle; text-align: center; padding: 12px; }
+        
+        .check-item { width: 22px; height: 22px; cursor: pointer; accent-color: #7c3aed; }
+        
+        /* ปุ่มลัดติ๊กครบ */
+        .btn-shortcut { background: #ede9fe; color: #6d28d9; border: none; font-size: 0.75rem; font-weight: bold; padding: 6px 12px; border-radius: 6px; transition: 0.2s; }
+        .btn-shortcut:hover { background: #ddd6fe; }
+        
+        .btn-confirm { background: #7c3aed; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: calc(100% - 40px); margin: 20px; border: none; transition: 0.3s; }
+        .btn-confirm:hover { background: #6d28d9; }
     </style>
 </head>
 <body>
 
 <div class="confirm-card">
-    <div class="purple-header">iPad ที่คืน เครื่องที่ 1-10</div>
+    <div class="purple-header">
+        <span>iPad ที่คืน เครื่องที่ 1-10</span>
+        <span class="req-id-badge" id="headerReqId">รายการ: Loading...</span>
+    </div>
+    
+    <!-- เพิ่มส่วนนี้: กล่องแสดงข้อมูลผู้ส่งคืน และ เลขรายการ -->
+    <div class="info-panel">
+        <div class="text-center">
+            <div class="info-label">🔖 เลขรายการ</div>
+            <div id="displayReqIdBox" class="info-value">กำลังโหลด...</div>
+        </div>
+        <div class="divider"></div>
+        <div class="text-center">
+            <div class="info-label">👤 ผู้ส่งคืน</div>
+            <div id="displayUserName" class="info-value">กำลังโหลด...</div>
+        </div>
+    </div>
+
     <div class="table-responsive">
-        <table class="table table-bordered align-middle mb-0">
+        <table class="table table-bordered align-middle">
             <thead>
                 <tr>
                     <th>เครื่องที่</th>
@@ -38,10 +68,11 @@
                     <th>เช็ค<br>AirDrop</th>
                     <th>เช็ค<br>Google Drive</th>
                     <th>ลบ<br>WI-FI</th>
+                    <th>ปุ่มลัด</th>
                 </tr>
             </thead>
             <tbody id="itemList">
-                <tr><td colspan="9" class="text-muted py-4">กำลังโหลดข้อมูลเครื่อง...</td></tr>
+                <tr><td colspan="10" class="text-muted py-4 text-center">กำลังโหลดข้อมูล...</td></tr>
             </tbody>
         </table>
     </div>
@@ -52,14 +83,16 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec";
     const reqId = new URLSearchParams(window.location.search).get('reqId');
+    const currentLoggerName = localStorage.getItem("userName") || "User";
 
     window.onload = function() {
-        if(!reqId) {
-            alert("ไม่พบเลขรายการ");
-            return;
-        }
+        if(!reqId) { alert("ไม่พบเลขรายการ"); return; }
+        
+        // เซ็ตข้อมูลโชว์บนหน้าเว็บ
+        document.getElementById('headerReqId').innerText = "รายการ: " + reqId;
+        document.getElementById('displayReqIdBox').innerText = reqId;
+        document.getElementById('displayUserName').innerText = currentLoggerName;
 
-        // ดึงข้อมูลรายการยืมเดิมมาแสดง
         fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getStep2Data", reqId: reqId }) })
         .then(res => res.json())
         .then(res => {
@@ -67,9 +100,9 @@
             tbody.innerHTML = "";
             
             if(res.data && res.data.length > 0) {
-                res.data.forEach((item, index) => {
+                res.data.forEach((item) => {
                     tbody.innerHTML += `<tr data-ipad="${item.ipadId}">
-                        <td class="fw-bold">${item.ipadId}</td>
+                        <td class="fw-bold text-primary">${item.ipadId}</td>
                         <td><input type="checkbox" class="check-item form-check-input"></td>
                         <td><input type="checkbox" class="check-item form-check-input"></td>
                         <td><input type="checkbox" class="check-item form-check-input"></td>
@@ -78,11 +111,19 @@
                         <td><input type="checkbox" class="check-item form-check-input"></td>
                         <td><input type="checkbox" class="check-item form-check-input"></td>
                         <td><input type="checkbox" class="check-item form-check-input"></td>
+                        <td><button type="button" class="btn btn-shortcut" onclick="checkAllInRow(this)">ติ๊กครบ</button></td>
                     </tr>`;
                 });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="10" class="text-danger py-4 text-center">❌ ไม่พบรายการเครื่อง</td></tr>';
             }
         });
     };
+
+    function checkAllInRow(btn) {
+        const row = btn.closest('tr');
+        row.querySelectorAll('.check-item').forEach(cb => cb.checked = true);
+    }
 
     async function submitReturn() {
         const btn = document.querySelector('.btn-confirm');
@@ -102,11 +143,11 @@
                     action: "saveStep4", 
                     reqId: reqId, 
                     items: items,
-                    name: localStorage.getItem("userName") || "User"
+                    name: currentLoggerName
                 })
             });
 
-            // ✅ Redirect ไปหน้า Success
+            // Redirect ไปหน้า success พร้อมสรุปรายการ
             const summary = `เลขรายการ: ${reqId}\nจำนวนเครื่องที่คืน: ${items.length}`;
             window.location.href = `success.html?title=ส่งคืนเครื่องสำเร็จ&desc=ระบบได้รับข้อมูลการคืนเครื่องแล้ว&summary=${encodeURIComponent(summary)}`;
             

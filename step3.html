@@ -15,7 +15,7 @@
         .info-value { font-size: 1.1rem; font-weight: bold; color: #c2410c; }
         .divider { width: 1px; background-color: #fed7aa; height: 40px; }
 
-        /* สไตล์ช่องกรอกชื่อแอดมิน (เนียนไปกับพื้นหลัง) */
+        /* สไตล์ช่องกรอกชื่อแอดมิน */
         .input-admin-name {
             font-size: 1.1rem;
             font-weight: bold;
@@ -130,7 +130,6 @@
     window.onload = function() {
         document.getElementById('displayReqId').innerText = reqId || "ไม่พบข้อมูล";
         
-        // ดึงชื่อจาก LocalStorage มาเติมในช่อง Input ให้ก่อน ถ้าไม่มีก็เว้นว่างไว้ให้พิมพ์
         const savedName = localStorage.getItem("userName");
         if(savedName) {
             document.getElementById('inspectorName').value = savedName;
@@ -178,12 +177,8 @@
 
     async function saveStep3() {
         const btn = document.querySelector('.btn-confirm');
-        
-        // ดึงชื่อจากช่อง Input (ถ้าแอดมินลืมพิมพ์ จะใช้คำว่า Admin (ไม่ระบุชื่อ) แทน)
         let inspector = document.getElementById('inspectorName').value.trim();
-        if(inspector === "") {
-            inspector = "Admin (ไม่ระบุชื่อ)";
-        }
+        if(inspector === "") { inspector = "Admin (ไม่ระบุชื่อ)"; }
 
         const originalText = btn.innerText;
         btn.innerText = "⏳ กำลังบันทึกข้อมูล..."; 
@@ -200,9 +195,7 @@
 
         if(items.length === 0) {
             alert("⚠️ ไม่มีข้อมูล iPad ให้บันทึกครับ");
-            btn.innerText = originalText; 
-            btn.disabled = false;
-            return;
+            btn.innerText = originalText; btn.disabled = false; return;
         }
         
         try {
@@ -214,23 +207,22 @@
                     items: items, 
                     exam: examValue, 
                     note: noteValue, 
-                    name: inspector // ส่งชื่อที่พิมพ์/ดึงมาไปบันทึก
+                    name: inspector 
                 })
             });
             
             const result = await res.json();
             if(result.status === "success") {
-                alert("✅ บันทึกข้อมูลตรวจก่อนสอบเรียบร้อยแล้วครับ!");
-                window.location.href = "admin.html";
+                // ✅ ส่วนที่แก้: เด้งไป success.html แทน admin.html
+                const summary = `เลขรายการ: ${reqId}`;
+                window.location.href = `success.html?title=ตรวจก่อนสอบสำเร็จ&desc=บันทึกข้อมูล Check List เรียบร้อยแล้ว&summary=${encodeURIComponent(summary)}`;
             } else {
                 alert("❌ เกิดข้อผิดพลาด: " + result.message);
-                btn.innerText = originalText; 
-                btn.disabled = false;
+                btn.innerText = originalText; btn.disabled = false;
             }
         } catch (error) {
             alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ");
-            btn.innerText = originalText; 
-            btn.disabled = false;
+            btn.innerText = originalText; btn.disabled = false;
         }
     }
 </script>

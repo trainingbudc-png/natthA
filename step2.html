@@ -2,23 +2,27 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ตรวจสอบและยืนยันรับเครื่อง</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body { background: #f1f5f9; font-family: 'Kanit', sans-serif; padding: 20px; }
-        .confirm-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 850px; margin: auto; }
-        .btn-confirm { background: #10b981; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: 100%; margin-top: 20px; }
+        .confirm-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 850px; margin: auto; border-top: 6px solid #10b981; }
+        .btn-confirm { background: #10b981; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: 100%; margin-top: 20px; border: none; transition: 0.3s; }
+        .btn-confirm:hover { background: #059669; }
+        .btn-confirm:disabled { background: #cbd5e1; }
         .info-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
         .info-label { font-size: 0.85rem; color: #64748b; margin-bottom: 2px; }
         .info-value { font-size: 1.1rem; font-weight: bold; }
         .divider { width: 1px; background-color: #cbd5e1; height: 40px; }
+        .table-responsive { border-radius: 12px; overflow: hidden; }
     </style>
 </head>
 <body>
 <div class="confirm-card">
-    <h4 class="text-center fw-bold text-dark mb-4">📋 [Step2] ตรวจสอบอุปกรณ์ก่อนรับ 📋</h4>
+    <h4 class="text-center fw-bold text-dark mb-4">📋 [Step 2] ตรวจสอบอุปกรณ์ก่อนรับ</h4>
     
-    <!-- กล่องแสดงข้อมูลผู้เบิกและแอดมิน -->
     <div class="info-box d-flex justify-content-around align-items-center">
         <div class="text-center">
             <div class="info-label">👤 ผู้ขอเบิกยืม:</div>
@@ -41,6 +45,7 @@
             </tbody>
         </table>
     </div>
+    
     <textarea id="reportNote" class="form-control mt-3" rows="2" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)..."></textarea>
     <button id="btnSubmit" class="btn btn-confirm" onclick="submitReceipt()" disabled>✅ ยืนยันการรับเครื่อง</button>
 </div>
@@ -48,19 +53,16 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec";
     const reqId = new URLSearchParams(window.location.search).get('reqId');
-
-    // ตัวแปรเก็บชื่อผู้ใช้ที่กำลังล็อกอินอยู่ เพื่อส่งไปบันทึกตอนรับเครื่อง
     const currentLoggerName = localStorage.getItem("userName") || "ผู้ใช้งาน";
 
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getStep1Data", reqId: reqId }) })
     .then(res => res.json())
     .then(res => {
-        // แสดงชื่อผู้เบิกและแอดมิน
         document.getElementById('displayUserName').innerText = res.userName || "ไม่ระบุ";
         document.getElementById('displayAdminName').innerText = res.adminName || "ไม่ระบุ";
 
         const tbody = document.getElementById('itemList');
-        tbody.innerHTML = ""; // ล้างข้อความกำลังโหลด
+        tbody.innerHTML = "";
 
         if(res.data && res.data.length > 0) {
             res.data.forEach(item => {
@@ -91,13 +93,13 @@
 
     async function submitReceipt() {
         const btn = document.getElementById('btnSubmit');
-        btn.innerText = "กำลังบันทึกข้อมูล..."; 
+        btn.innerText = "⏳ กำลังบันทึกข้อมูล..."; 
         btn.disabled = true;
         
         let items = [];
         document.querySelectorAll('.select-ipad:checked').forEach(ipad => {
             const row = ipad.closest('tr');
-            // เปลี่ยนค่าที่ส่งไปให้เป็น ☑ หรือ ☐[cite: 14]
+            // บันทึกสถานะ checklist[cite: 4]
             const checks = Array.from(row.querySelectorAll('.check-app')).map(c => c.checked ? "☑" : "☐");
             items.push({ ipadId: row.querySelector('label').innerText, checklist: checks.join(",") });
         });
@@ -113,8 +115,11 @@
                     name: currentLoggerName 
                 })
             });
-            alert("✅ บันทึกข้อมูลรับเครื่องเรียบร้อยแล้ว!"); 
-            window.location.href = "user.html"; // หรือใช้ window.close();
+            
+            // ✅ เปลี่ยนเป็น Redirect ไป success.html
+            const summary = `เลขรายการ: ${reqId}\nรายการเครื่อง: ${items.map(i => i.ipadId).join(', ')}`;
+            window.location.href = `success.html?title=รับเครื่องสำเร็จ&desc=ระบบยืนยันการรับเครื่องเรียบร้อยแล้ว&summary=${encodeURIComponent(summary)}`;
+            
         } catch (error) {
             alert("❌ เกิดข้อผิดพลาดในการบันทึกข้อมูล");
             btn.innerText = "✅ ยืนยันการรับเครื่อง";

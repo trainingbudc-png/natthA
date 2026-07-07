@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Step 4 | ส่งคืนเครื่อง</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { background: #f1f5f9; font-family: 'Kanit', sans-serif; padding: 20px; }
+        .confirm-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 1000px; margin: auto; overflow: hidden; }
+        
+        /* สไตล์หัวตารางม่วง */
+        .purple-header { background-color: #6d28d9; color: white; padding: 15px 20px; font-weight: 600; border-radius: 12px 12px 0 0; margin-bottom: 0; }
+        
+        .table th { font-size: 0.8rem; vertical-align: middle; text-align: center; color: #475569; background: #f8fafc; }
+        .table td { vertical-align: middle; text-align: center; }
+        .check-item { width: 20px; height: 20px; cursor: pointer; accent-color: #6d28d9; }
+        
+        .btn-confirm { background: #6d28d9; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: 100%; border: none; transition: 0.3s; margin-top: 20px; }
+        .btn-confirm:hover { background: #5b21b6; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="confirm-card">
+    <div class="purple-header">iPad ที่คืน เครื่องที่ 1-10</div>
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>เครื่องที่</th>
+                    <th>เช็คแอพ<br>File</th>
+                    <th>เช็คแอพ<br>รูปภาพ</th>
+                    <th>เช็คแอพ<br>Safari</th>
+                    <th>เช็ค<br>Wi-Fi</th>
+                    <th>เช็ค<br>Bluetooth</th>
+                    <th>เช็ค<br>AirDrop</th>
+                    <th>เช็ค<br>Google Drive</th>
+                    <th>ลบ<br>WI-FI</th>
+                </tr>
+            </thead>
+            <tbody id="itemList">
+                <tr><td colspan="9" class="text-muted py-4">กำลังโหลดข้อมูลเครื่อง...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <button class="btn btn-confirm" onclick="submitReturn()">💾 ยืนยันการส่งคืนเครื่องทั้งหมด</button>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec";
+    const reqId = new URLSearchParams(window.location.search).get('reqId');
+
+    window.onload = function() {
+        if(!reqId) {
+            alert("ไม่พบเลขรายการ");
+            return;
+        }
+
+        // ดึงข้อมูลรายการยืมเดิมมาแสดง
+        fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getStep2Data", reqId: reqId }) })
+        .then(res => res.json())
+        .then(res => {
+            const tbody = document.getElementById('itemList');
+            tbody.innerHTML = "";
+            
+            if(res.data && res.data.length > 0) {
+                res.data.forEach((item, index) => {
+                    tbody.innerHTML += `<tr data-ipad="${item.ipadId}">
+                        <td class="fw-bold">${item.ipadId}</td>
+                        <td><input type="checkbox" class="check-item form-check-input"></td>
+                        <td><input type="checkbox" class="check-item form-check-input"></td>
+                        <td><input type="checkbox" class="check-item form-check-input"></td>
+                        <td><input type="checkbox" class="check-item form-check-input"></td>
+                        <td><input type="checkbox" class="check-item form-check-input"></td>
+                        <td><input type="checkbox" class="check-item form-check-input"></td>
+                        <td><input type="checkbox" class="check-item form-check-input"></td>
+                        <td><input type="checkbox" class="check-item form-check-input"></td>
+                    </tr>`;
+                });
+            }
+        });
+    };
+
+    async function submitReturn() {
+        const btn = document.querySelector('.btn-confirm');
+        btn.innerText = "⏳ กำลังบันทึก...";
+        btn.disabled = true;
+
+        let items = [];
+        document.querySelectorAll('#itemList tr[data-ipad]').forEach(row => {
+            const checks = Array.from(row.querySelectorAll('.check-item')).map(c => c.checked ? "☑" : "☐");
+            items.push({ ipadId: row.dataset.ipad, checks: checks });
+        });
+
+        try {
+            await fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ 
+                    action: "saveStep4", 
+                    reqId: reqId, 
+                    items: items,
+                    name: localStorage.getItem("userName") || "User"
+                })
+            });
+
+            // ✅ Redirect ไปหน้า Success
+            const summary = `เลขรายการ: ${reqId}\nจำนวนเครื่องที่คืน: ${items.length}`;
+            window.location.href = `success.html?title=ส่งคืนเครื่องสำเร็จ&desc=ระบบได้รับข้อมูลการคืนเครื่องแล้ว&summary=${encodeURIComponent(summary)}`;
+            
+        } catch (error) {
+            alert("❌ เกิดข้อผิดพลาด");
+            btn.innerText = "💾 ยืนยันการส่งคืนเครื่องทั้งหมด";
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>

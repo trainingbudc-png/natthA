@@ -11,10 +11,9 @@
         .confirm-card { background: white; padding: 0; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); max-width: 1000px; margin: auto; overflow: hidden; }
         
         /* สไตล์หัวตารางสีม่วง */
-        .purple-header { background-color: #7c3aed; color: white; padding: 20px; font-weight: 600; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
-        .req-id-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 8px; font-size: 0.9rem; }
+        .purple-header { background-color: #7c3aed; color: white; padding: 20px; font-weight: 600; font-size: 1.2rem; text-align: left; }
         
-        /* กล่องแสดงข้อมูลรายการและคนคืน (เพิ่มใหม่) */
+        /* กล่องแสดงข้อมูลรายการและคนคืน */
         .info-panel { padding: 15px 20px; background: #f5f3ff; border-bottom: 1px solid #ddd6fe; display: flex; justify-content: space-around; align-items: center; }
         .info-label { font-size: 0.85rem; color: #6d28d9; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
         .info-value { font-size: 1.1rem; font-weight: bold; color: #4c1d95; }
@@ -38,11 +37,9 @@
 
 <div class="confirm-card">
     <div class="purple-header">
-        <span>iPad ที่คืน เครื่องที่ 1-10</span>
-        <span class="req-id-badge" id="headerReqId">รายการ: Loading...</span>
+        iPad ที่คืน เครื่องที่ 1-10
     </div>
     
-    <!-- เพิ่มส่วนนี้: กล่องแสดงข้อมูลผู้ส่งคืน และ เลขรายการ -->
     <div class="info-panel">
         <div class="text-center">
             <div class="info-label">🔖 เลขรายการ</div>
@@ -89,7 +86,6 @@
         if(!reqId) { alert("ไม่พบเลขรายการ"); return; }
         
         // เซ็ตข้อมูลโชว์บนหน้าเว็บ
-        document.getElementById('headerReqId').innerText = "รายการ: " + reqId;
         document.getElementById('displayReqIdBox').innerText = reqId;
         document.getElementById('displayUserName').innerText = currentLoggerName;
 

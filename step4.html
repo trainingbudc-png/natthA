@@ -8,27 +8,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body { background: #f1f5f9; font-family: 'Kanit', sans-serif; padding: 20px; }
-        .confirm-card { background: white; padding: 0; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); max-width: 1000px; margin: auto; overflow: hidden; }
+        .confirm-card { background: white; padding: 0; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); max-width: 1000px; margin: auto; overflow: hidden; }
         
-        .purple-header { background-color: #7c3aed; color: white; padding: 20px; font-weight: 600; font-size: 1.2rem; }
+        .purple-header { background-color: #7c3aed; color: white; padding: 20px; font-weight: 600; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+        .req-id-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 8px; font-size: 0.9rem; }
         
         .table { margin-bottom: 0 !important; }
-        .table th { font-size: 0.8rem; vertical-align: middle; text-align: center; color: #4b5563; background: #f9fafb; padding: 12px; }
+        .table th { font-size: 0.85rem; vertical-align: middle; text-align: center; color: #4b5563; background: #f9fafb; padding: 12px; }
         .table td { vertical-align: middle; text-align: center; padding: 12px; }
         
         .check-item { width: 22px; height: 22px; cursor: pointer; accent-color: #7c3aed; }
         
-        .btn-shortcut { background: #ede9fe; color: #6d28d9; border: none; font-size: 0.75rem; font-weight: bold; padding: 4px 8px; border-radius: 6px; }
+        .btn-shortcut { background: #ede9fe; color: #6d28d9; border: none; font-size: 0.75rem; font-weight: bold; padding: 5px 10px; border-radius: 6px; transition: 0.2s; }
         .btn-shortcut:hover { background: #ddd6fe; }
         
-        .btn-confirm { background: #7c3aed; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: 100%; border: none; transition: 0.3s; margin: 20px; width: calc(100% - 40px); }
+        .btn-confirm { background: #7c3aed; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: calc(100% - 40px); margin: 20px; border: none; transition: 0.3s; }
         .btn-confirm:hover { background: #6d28d9; }
     </style>
 </head>
 <body>
 
 <div class="confirm-card">
-    <div class="purple-header">iPad ที่คืน เครื่องที่ 1-10</div>
+    <div class="purple-header">
+        <span>iPad ที่คืน</span>
+        <span class="req-id-badge" id="headerReqId">รายการ: Loading...</span>
+    </div>
     
     <div class="table-responsive">
         <table class="table table-bordered align-middle">
@@ -61,6 +65,7 @@
 
     window.onload = function() {
         if(!reqId) { alert("ไม่พบเลขรายการ"); return; }
+        document.getElementById('headerReqId').innerText = "รายการ: " + reqId;
 
         fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getStep2Data", reqId: reqId }) })
         .then(res => res.json())
@@ -71,7 +76,7 @@
             if(res.data && res.data.length > 0) {
                 res.data.forEach((item) => {
                     tbody.innerHTML += `<tr data-ipad="${item.ipadId}">
-                        <td class="fw-bold">${item.ipadId}</td>
+                        <td class="fw-bold text-primary">${item.ipadId}</td>
                         <td><input type="checkbox" class="check-item form-check-input"></td>
                         <td><input type="checkbox" class="check-item form-check-input"></td>
                         <td><input type="checkbox" class="check-item form-check-input"></td>
@@ -116,9 +121,9 @@
                 })
             });
 
-            // Redirect ไปหน้า success
-            const summary = `เลขรายการ: ${reqId}\nจำนวนเครื่อง: ${items.length}`;
-            window.location.href = `success.html?title=ส่งคืนเครื่องสำเร็จ&desc=ระบบบันทึกการส่งคืนเรียบร้อยแล้ว&summary=${encodeURIComponent(summary)}`;
+            // Redirect ไปหน้า success พร้อมสรุปรายการ
+            const summary = `เลขรายการ: ${reqId}\nจำนวนเครื่องที่คืน: ${items.length}`;
+            window.location.href = `success.html?title=ส่งคืนเครื่องสำเร็จ&desc=ระบบได้รับข้อมูลการคืนเครื่องแล้ว&summary=${encodeURIComponent(summary)}`;
             
         } catch (error) {
             alert("❌ เกิดข้อผิดพลาด");

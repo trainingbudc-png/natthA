@@ -102,7 +102,7 @@
                     </tr>
                 </thead>
                 <tbody id="logTableBody">
-                    <tr><td colspan="6" class="text-center py-5 text-muted">กำลังโหลดข้อมูล... ⏳</td></tr>
+                    <tr><td colspan="5" class="text-center py-5 text-muted">กำลังโหลดข้อมูล... ⏳</td></tr>
                 </tbody>
             </table>
         </div>
@@ -125,7 +125,7 @@
 
     function loadTableData() {
         const tbody = document.getElementById("logTableBody");
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">กำลังโหลดข้อมูล... ⏳</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">กำลังโหลดข้อมูล... ⏳</td></tr>';
         
         fetch(API_URL, {
             method: "POST",
@@ -170,17 +170,16 @@
                             <td>${item.name || "-"}</td>
                             <td class="text-primary fw-bold">${item.ipadId || "-"}</td>
                             <td><span class="badge ${badgeClass} px-3 py-2 rounded-pill shadow-sm">${displayStatus}</span></td>
-                            <td class="text-muted" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.note || "-"}</td>
                         </tr>
                     `;
                 });
             } else {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5">ยังไม่มีข้อมูลในระบบ</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5">ยังไม่มีข้อมูลในระบบ</td></tr>';
             }
         })
         .catch(err => {
             console.error(err);
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-5">❌ เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-5">❌ เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
         });
     }
 

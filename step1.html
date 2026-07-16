@@ -43,9 +43,9 @@
         }
 
         .ipad-container {
-            max-height: 250px;
+            max-height: 200px;
             overflow-y: auto;
-            padding: 10px;
+            padding: 15px;
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
@@ -91,20 +91,28 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label d-flex justify-content-between">
-                        <span>📱 เลือกเครื่อง iPad ที่ว่าง (กดเลือกได้หลายเครื่อง):</span>
-                        <span class="badge bg-secondary" id="selectedCount">เลือกแล้ว 0 เครื่อง</span>
+                    <label class="form-label d-flex justify-content-between align-items-end mb-3">
+                        <span>📱 เลือกเครื่องที่ว่าง (กดเลือกได้หลายเครื่อง):</span>
+                        <span class="badge bg-secondary fs-6" id="selectedCount">เลือกแล้ว 0 เครื่อง</span>
                     </label>
                     
-                    <div id="ipadButtonContainer" class="ipad-container d-flex flex-wrap gap-2">
-                        <div class="text-muted w-100 text-center py-3">กำลังโหลดคลัง iPad... ⏳</div>
+                    <!-- 📌 หมวดหมู่ iPad ธรรมดา -->
+                    <h6 class="fw-bold" style="color: #00897b;">🔹 หมวด iPad (ปกติ)</h6>
+                    <div id="ipadNormalContainer" class="ipad-container d-flex flex-wrap gap-2 mb-3">
+                        <div class="text-muted w-100 text-center py-2">กำลังโหลด... ⏳</div>
+                    </div>
+
+                    <!-- 📌 หมวดหมู่ iPad Air + APC -->
+                    <h6 class="fw-bold" style="color: #00897b;">🔹 หมวด iPad Air + APC</h6>
+                    <div id="ipadAirContainer" class="ipad-container d-flex flex-wrap gap-2">
+                        <div class="text-muted w-100 text-center py-2">กำลังโหลด... ⏳</div>
                     </div>
                 </div>
 
                 <!-- 📌 ตารางเช็คลิสต์รายเครื่อง -->
                 <div id="dynamicChecklistContainer" class="mb-4 d-none">
                     <label class="form-label text-teal fw-bold" style="color: #00695c;">✅ สิ่งที่แอดมินต้องเตรียม (เช็คให้ครบทุกเครื่อง):</label>
-                    <div class="table-responsive border rounded">
+                    <div class="table-responsive border rounded bg-white">
                         <table class="table table-borderless mb-0">
                             <thead>
                                 <tr>
@@ -155,54 +163,82 @@
         fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getInventory" }) })
         .then(res => res.json())
         .then(res => {
-            const container = document.getElementById("ipadButtonContainer");
-            container.innerHTML = "";
+            const containerNormal = document.getElementById("ipadNormalContainer");
+            const containerAir = document.getElementById("ipadAirContainer");
+            containerNormal.innerHTML = "";
+            containerAir.innerHTML = "";
             
             if(res.status === "success" && res.data.length > 0) {
-                res.data.forEach(id => { 
-                    container.innerHTML += `
-                        <input type="checkbox" class="btn-check ipad-checkbox" id="ipad-${id}" value="${id}" onchange="handleIpadSelection(this)">
-                        <label class="btn btn-outline-teal px-3 py-2" for="ipad-${id}">${id}</label>
-                    `;
+                // เรียงลำดับตัวเลขเครื่องก่อนแสดงผลปุ่ม
+                res.data.sort((a, b) => {
+                    let numA = parseInt(a.replace(/\D/g, ''), 10) || 0;
+                    let numB = parseInt(b.replace(/\D/g, ''), 10) || 0;
+                    return numA - numB;
                 });
+
+                let countNormal = 0;
+                let countAir = 0;
+
+                res.data.forEach(id => { 
+                    // 📌 แปลงชื่อให้ไม่มีเว้นวรรคหรือเครื่องหมายพิเศษ เพื่อใช้เป็น ID ในระบบหลังบ้าน
+                    const safeId = id.replace(/[^a-zA-Z0-9]/g, '');
+                    
+                    const btnHtml = `
+                        <input type="checkbox" class="btn-check ipad-checkbox" id="btn-${safeId}" value="${id}" data-safeid="${safeId}" onchange="handleIpadSelection(this)">
+                        <label class="btn btn-outline-teal px-3 py-2" for="btn-${safeId}">${id}</label>
+                    `;
+                    
+                    // แยกหมวดหมู่จากชื่อ
+                    if (id.includes("Air") || id.includes("APC")) {
+                        containerAir.innerHTML += btnHtml;
+                        countAir++;
+                    } else {
+                        containerNormal.innerHTML += btnHtml;
+                        countNormal++;
+                    }
+                });
+
+                if(countNormal === 0) containerNormal.innerHTML = '<div class="text-muted text-center w-100">-- ไม่มีเครื่องว่าง --</div>';
+                if(countAir === 0) containerAir.innerHTML = '<div class="text-muted text-center w-100">-- ไม่มีเครื่องว่าง --</div>';
+
             } else { 
-                container.innerHTML = '<div class="text-danger w-100 text-center py-3 fw-bold">❌ ไม่มีเครื่องว่างในคลังขณะนี้</div>'; 
+                containerNormal.innerHTML = '<div class="text-danger w-100 text-center py-2 fw-bold">❌ ไม่มีเครื่องว่าง</div>'; 
+                containerAir.innerHTML = '<div class="text-danger w-100 text-center py-2 fw-bold">❌ ไม่มีเครื่องว่าง</div>'; 
             }
         });
     }
 
-    // 📌 ฟังก์ชันจัดการเมื่อติ๊กเลือก iPad และเรียงลำดับ
+    // 📌 ฟังก์ชันจัดการเมื่อติ๊กเลือก iPad
     function handleIpadSelection(checkbox) {
-        const ipadId = checkbox.value;
+        const ipadId = checkbox.value; // ชื่อเต็มที่ใช้โชว์หน้าเว็บ
+        const safeId = checkbox.dataset.safeid; // รหัสปลอดภัยไร้ช่องว่างที่ใช้ผูก ID ในระบบ
         const tbody = document.getElementById("dynamicChecklistBody");
         const container = document.getElementById("dynamicChecklistContainer");
         
         if (checkbox.checked) {
-            // สร้างแถวใหม่เพิ่มเข้าไป
             const tr = document.createElement("tr");
-            tr.id = `row-${ipadId}`;
+            tr.id = `row-${safeId}`;
             
-            // ดึงตัวเลขจากชื่อ iPad มาเก็บไว้เพื่อใช้เรียง (เช่น IPad05 -> 5)
-            const numericValue = parseInt(ipadId.replace(/[^0-9]/g, ''), 10) || 0;
+            // ดึงตัวเลขมาเก็บไว้เรียงแถว
+            const numericValue = parseInt(ipadId.replace(/\D/g, ''), 10) || 0;
             tr.dataset.sortval = numericValue;
             tr.dataset.rawname = ipadId;
 
             tr.innerHTML = `
                 <td class="fw-bold text-primary">${ipadId}</td>
-                <td><input type="checkbox" class="form-check-input check-${ipadId}" value="drive"></td>
-                <td><input type="checkbox" class="form-check-input check-${ipadId}" value="file"></td>
-                <td><input type="checkbox" class="form-check-input check-${ipadId}" value="img"></td>
-                <td><input type="checkbox" class="form-check-input check-${ipadId}" value="safari"></td>
-                <td><button type="button" class="btn btn-sm btn-outline-teal fw-bold rounded-pill" onclick="tickAllRow('${ipadId}')">✔ ติ๊กครบ</button></td>
+                <td><input type="checkbox" class="form-check-input check-${safeId}" value="drive"></td>
+                <td><input type="checkbox" class="form-check-input check-${safeId}" value="file"></td>
+                <td><input type="checkbox" class="form-check-input check-${safeId}" value="img"></td>
+                <td><input type="checkbox" class="form-check-input check-${safeId}" value="safari"></td>
+                <td><button type="button" class="btn btn-sm btn-outline-teal fw-bold rounded-pill" onclick="tickAllRow('${safeId}')">✔ ติ๊กครบ</button></td>
             `;
             tbody.appendChild(tr);
         } else {
-            // เอาแถวออกถ้าเลิกติ๊ก
-            const tr = document.getElementById(`row-${ipadId}`);
+            const tr = document.getElementById(`row-${safeId}`);
             if (tr) tr.remove();
         }
 
-        // 📌 ระบบจัดเรียงแถวจากน้อยไปมาก (Sorting)
+        // 📌 ระบบเรียงแถวตารางจากน้อยไปมาก (รับประกันความเป๊ะ)
         const rows = Array.from(tbody.querySelectorAll('tr'));
         rows.sort((a, b) => {
             const valA = parseInt(a.dataset.sortval, 10);
@@ -211,16 +247,14 @@
             return valA - valB;
         });
         
-        // จับแถวที่จัดเรียงแล้วใส่กลับเข้าไปในตาราง (คงสถานะที่เคยติ๊กไว้)
         rows.forEach(row => tbody.appendChild(row));
 
-        // อัปเดตตัวเลข "เลือกแล้ว X เครื่อง"
+        // อัปเดตตัวเลข
         const count = rows.length;
         const badge = document.getElementById('selectedCount');
         badge.innerText = `เลือกแล้ว ${count} เครื่อง`;
         badge.className = count > 0 ? "badge bg-success" : "badge bg-secondary";
 
-        // ซ่อน/แสดง ตารางเช็คลิสต์
         if (count > 0) {
             container.classList.remove('d-none');
         } else {
@@ -228,9 +262,9 @@
         }
     }
 
-    // 📌 ฟังก์ชันติ๊กครบทั้งแถวสำหรับเครื่องนั้นๆ
-    function tickAllRow(ipadId) {
-        const checkboxes = document.querySelectorAll(`.check-${ipadId}`);
+    // 📌 ฟังก์ชันติ๊กครบทีละแถว
+    function tickAllRow(safeId) {
+        const checkboxes = document.querySelectorAll(`.check-${safeId}`);
         checkboxes.forEach(cb => cb.checked = true);
     }
 
@@ -238,17 +272,19 @@
         const recipientName = document.getElementById("userNameSelect").value;
         const adminName = localStorage.getItem("userName") || "Admin";
         
-        const selectedIpads = Array.from(document.querySelectorAll('.ipad-checkbox:checked')).map(cb => cb.value);
+        const selectedIpads = document.querySelectorAll('.ipad-checkbox:checked');
 
         if(!recipientName) return Swal.fire("แจ้งเตือน", "กรุณาเลือกชื่อผู้ขอยืม", "warning");
         if(selectedIpads.length === 0) return Swal.fire("แจ้งเตือน", "กรุณากดเลือก iPad อย่างน้อย 1 เครื่อง", "warning");
         
-        // เช็คว่าติ๊กครบทุกเครื่องที่เลือกหรือไม่
         let allChecked = true;
         const ipadData = [];
 
-        selectedIpads.forEach(id => {
-            const checks = document.querySelectorAll(`.check-${id}`);
+        selectedIpads.forEach(checkbox => {
+            const id = checkbox.value;
+            const safeId = checkbox.dataset.safeid;
+            
+            const checks = document.querySelectorAll(`.check-${safeId}`);
             if (checks.length > 0) {
                 const drive = checks[0].checked;
                 const file = checks[1].checked;
@@ -258,7 +294,7 @@
                 if (!drive || !file || !img || !safari) allChecked = false;
                 
                 ipadData.push({
-                    id: id,
+                    id: id, // ส่งชื่อเต็มกลับไปเซฟที่หลังบ้าน
                     drive: drive,
                     file: file,
                     img: img,

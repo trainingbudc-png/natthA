@@ -24,7 +24,7 @@
             z-index: 100;
         }
         .admin-name { 
-            color: #dc3545; /* สีแดงสำหรับชื่อแอดมิน */
+            color: #dc3545; 
             font-weight: 600; 
             margin-right: 15px; 
         }
@@ -101,6 +101,19 @@
             border-radius: 8px; 
             padding: 6px 15px; 
         }
+
+        /* 📌 สไตล์ Tag รหัส iPad ให้ดูเป็นระเบียบ */
+        .ipad-tag {
+            background-color: #f0f9ff;
+            color: #0284c7;
+            border: 1px solid #bae6fd;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin: 3px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -131,8 +144,7 @@
                 </a>
             </div>
             <div class="col-md-6">
-                <!-- ⚠️ เปลี่ยนลิงก์ไปหน้า step5 ของพี่ได้เลยครับ -->
-                <a href="step5.html" class="menu-card card-red"> 
+                <a href="step5-list.html" class="menu-card card-red"> 
                     <div class="menu-icon">🔍</div>
                     <div class="menu-text">
                         <h5>Step 5 | ตรวจ</h5>
@@ -166,11 +178,11 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>เลขรายการ</th>
-                        <th>วัน-เวลาที่บันทึก</th>
-                        <th>ผู้ดำเนินการ</th>
-                        <th>รหัส iPad</th>
-                        <th>สถานะ / ขั้นตอน</th>
+                        <th style="width: 15%;">เลขรายการ</th>
+                        <th style="width: 15%;">วัน-เวลาที่บันทึก</th>
+                        <th style="width: 20%;">ผู้ดำเนินการ</th>
+                        <th style="width: 35%;">รหัส iPad</th>
+                        <th style="width: 15%;">สถานะ / ขั้นตอน</th>
                     </tr>
                 </thead>
                 <tbody id="adminTableBody">
@@ -191,7 +203,6 @@
         const userName = localStorage.getItem("userName");
         const userRole = localStorage.getItem("userRole");
 
-        // ตรวจสอบสิทธิ์ (ต้องล็อกอินและเป็น Admin เท่านั้น)
         if(!userName || userRole !== "Admin") {
             window.location.href = "index.html"; 
             return;
@@ -201,7 +212,6 @@
         loadAdminTableData();
     };
 
-    // 📌 ฟังก์ชันดึงข้อมูลตารางรวมทั้งหมด
     function loadAdminTableData() {
         const tbody = document.getElementById("adminTableBody");
         tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">กำลังโหลดข้อมูลตาราง... ⏳</td></tr>';
@@ -215,7 +225,6 @@
             tbody.innerHTML = ""; 
             
             if (res.status === "success" && res.data && res.data.length > 0) {
-                // กรองเอาแถวที่เป็นหัวตารางทิ้งไป
                 const validData = res.data.filter(item => item.reqId !== "ReqID" && item.reqId !== "เลขรายการ");
 
                 if (validData.length === 0) {
@@ -230,7 +239,15 @@
                         dateStr = d.toLocaleDateString("th-TH") + " " + d.toLocaleTimeString("th-TH", {hour: '2-digit', minute:'2-digit', second:'2-digit'});
                     }
 
-                    // 📌 ตกแต่งป้ายสถานะให้สวยงาม
+                    // 📌 แปลงข้อความรหัสเครื่องยาวๆ ให้กลายเป็นกล่อง Tag สวยๆ
+                    let formattedIpads = '<span class="text-muted">-</span>';
+                    if (item.ipadId && item.ipadId.trim() !== "") {
+                        // แยกด้วยลูกน้ำ (,) แล้วครอบด้วย span
+                        formattedIpads = item.ipadId.split(',').map(id => {
+                            return `<span class="ipad-tag">${id.trim()}</span>`;
+                        }).join('');
+                    }
+
                     let statusTxt = item.status || "-";
                     let displayStatus = statusTxt;
                     let badgeClass = "bg-secondary";
@@ -255,13 +272,12 @@
                         badgeClass = "bg-dark text-warning";
                     }
 
-                    // สร้างแถวตาราง
                     tbody.innerHTML += `
                         <tr>
                             <td class="fw-bold text-dark">${item.reqId}</td>
                             <td class="text-muted" style="font-size: 0.85rem;">${dateStr}</td>
                             <td class="fw-bold" style="color: #495057;">${item.name || "-"}</td>
-                            <td class="fw-bold text-primary">${item.ipadId || "-"}</td>
+                            <td style="max-width: 300px;">${formattedIpads}</td>
                             <td><span class="badge ${badgeClass} px-3 py-2 rounded-pill shadow-sm">${displayStatus}</span></td>
                         </tr>
                     `;
@@ -276,7 +292,6 @@
         });
     }
 
-    // 📌 ฟังก์ชันออกจากระบบ
     async function logout() {
         if(confirm("คุณต้องการออกจากระบบใช่หรือไม่?")) {
             localStorage.removeItem("userName");

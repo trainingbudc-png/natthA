@@ -28,7 +28,6 @@ async function loadUserTableData() {
     const currentUser = localStorage.getItem("userName");
 
     try {
-        // ใช้คำสั่ง callAPI จาก script.js
         const res = await callAPI({ action: "getData" });
         
         if (res.status === "success" && res.data && res.data.length > 0) {
@@ -47,6 +46,33 @@ async function loadUserTableData() {
                 if (item.timestamp) {
                     const d = new Date(item.timestamp);
                     dateStr = d.toLocaleDateString("th-TH") + " " + d.toLocaleTimeString("th-TH", {hour: '2-digit', minute:'2-digit'});
+                }
+
+                // 📌 ระบบคัดแยกและยุบรวมชื่อ iPad (เหมือนฝั่งแอดมินเป๊ะ!)
+                let formattedIpads = '<span class="text-muted">-</span>';
+                if (item.ipadId && item.ipadId.trim() !== "") {
+                    let rawIpads = item.ipadId.split(',').map(id => id.trim());
+                    let normalIds = [];
+                    let airIds = [];
+
+                    rawIpads.forEach(id => {
+                        let numMatch = id.match(/\d+/); 
+                        let num = numMatch ? numMatch[0] : id; 
+                        if (id.toLowerCase().includes("air") || id.toLowerCase().includes("apc")) {
+                            airIds.push(num);
+                        } else {
+                            normalIds.push(num);
+                        }
+                    });
+
+                    let displayGroups = [];
+                    if (normalIds.length > 0) {
+                        displayGroups.push(`<span class="text-primary fw-bold">[iPad]</span> ${normalIds.join(', ')}`);
+                    }
+                    if (airIds.length > 0) {
+                        displayGroups.push(`<span class="text-success fw-bold">[Air+APC]</span> ${airIds.join(', ')}`);
+                    }
+                    formattedIpads = displayGroups.join('<br>');
                 }
 
                 let statusTxt = item.status || "-";
@@ -79,12 +105,12 @@ async function loadUserTableData() {
                     actionBtn = `<span class="text-muted">-</span>`;
                 }
                 
-                // สร้างแถวตาราง (รองรับ Responsive มือถือด้วย data-label)
+                // สร้างแถวตาราง
                 tbody.innerHTML += `
                     <tr>
                         <td data-label="📌 เลขรายการ" class="fw-bold text-dark">${item.reqId}</td>
                         <td data-label="🕒 อัปเดตล่าสุด" class="text-muted" style="font-size: 0.85rem;">${dateStr}</td>
-                        <td data-label="📱 รหัส iPad" class="fw-bold text-primary">${item.ipadId || "-"}</td>
+                        <td data-label="📱 รหัส iPad" style="max-width: 350px; line-height: 1.6;">${formattedIpads}</td>
                         <td data-label="📊 สถานะ"><span class="badge ${badgeClass} px-3 py-2 rounded-pill shadow-sm">${displayStatus}</span></td>
                         <td data-label="⚙️ จัดการ" style="max-width: 150px;">${actionBtn}</td>
                     </tr>
@@ -103,19 +129,31 @@ async function loadUserTableData() {
 // ฟังก์ชันส่งไปหน้า Step ต่างๆ
 // -----------------------------------------
 function goToStep(stepNumber, reqId) {
-    // ⚠️ หมายเหตุ: ถ้าไฟล์ step ของพี่มี _3 ต่อท้าย (เช่น step2_3.html) ให้เพิ่ม _3 เข้าไปในบรรทัดด้านล่างนี้นะครับ
     window.location.href = `step${stepNumber}.html?reqId=${reqId}`;
 }
 
 // -----------------------------------------
-// ฟังก์ชันแจ้งปัญหา (เตรียมไว้พัฒนาต่อ)
+// ฟังก์ชันสำหรับเมนูลัด (ป๊อปอัปให้กรอก REQ-ID)
 // -----------------------------------------
-function reportIssue() {
+function promptForStep(stepNumber) {
     Swal.fire({
-        title: "ระบบแจ้งปัญหา",
-        text: "ฟังก์ชันนี้กำลังอยู่ระหว่างการพัฒนาครับ 🛠️",
-        icon: "info",
-        confirmButtonColor: "#0ea5e9",
-        confirmButtonText: "ตกลง"
+        title: `ดำเนินการ Step [${stepNumber}]`,
+        text: "กรุณากรอกเลขรายการ (เช่น 0001) หรือกดปุ่มด้านล่างจากตารางก็ได้ครับ",
+        input: 'text',
+        inputPlaceholder: 'ใส่ตัวเลข หรือ REQ-XXXX',
+        showCancelButton: true,
+        confirmButtonText: 'ถัดไป ➡️',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#0ea5e9'
+    }).then((result) => {
+        if (result.isConfirmed && result.value) {
+            let reqId = result.value.trim().toUpperCase();
+            // พิมพ์แค่เลข 1 ระบบจะเติม REQ- ให้เป็น REQ-0001 อัตโนมัติ
+            if (!reqId.startsWith("REQ-")) {
+                let num = reqId.replace(/[^0-9]/g, '');
+                if(num) reqId = "REQ-" + num.padStart(4, '0');
+            }
+            goToStep(stepNumber, reqId);
+        }
     });
 }

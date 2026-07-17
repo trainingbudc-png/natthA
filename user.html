@@ -7,47 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css">
-    
-    <style>
-        /* สไตล์พิเศษเฉพาะหน้า User */
-        .section-title { font-size: 1.1rem; font-weight: 600; color: #495057; margin-top: 25px; margin-bottom: 15px; padding-left: 10px; }
-        .title-blue { border-left: 4px solid #0ea5e9; }
-        
-        /* 📌 การ์ดเมนูลัด */
-        .menu-card { 
-            background: white; border: none; border-radius: 12px; padding: 20px; 
-            display: flex; align-items: center; gap: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: 0.2s; cursor: pointer; height: 100%;
-        }
-        .menu-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.06); }
-        .card-step2 { border-left: 5px solid #10b981; } /* สีเขียว */
-        .card-step3 { border-left: 5px solid #f59e0b; } /* สีเหลือง */
-        .card-step4 { border-left: 5px solid #8b5cf6; } /* สีม่วง */
-        .card-report { border-left: 5px solid #ef4444; } /* สีแดง */
-
-        .menu-icon { font-size: 2rem; }
-        .menu-text h6 { font-weight: 600; margin: 0 0 5px 0; font-size: 1.05rem; color: #1e293b; }
-        .menu-text p { margin: 0; font-size: 0.8rem; color: #64748b; }
-        
-        /* Responsive Table สำหรับมือถือ */
-        @media screen and (max-width: 768px) {
-            .table-card { background: transparent; box-shadow: none; border: none; padding: 0; }
-            .table thead { display: none; }
-            .table tbody tr {
-                display: block; background: #ffffff; border-radius: 16px; margin-bottom: 15px;
-                padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
-            }
-            .table tbody td {
-                display: flex; justify-content: space-between; align-items: center;
-                text-align: right; padding: 10px 0; border-bottom: 1px dashed #f1f5f9;
-            }
-            .table tbody td:last-child { border-bottom: none; padding-bottom: 0; }
-            .table tbody td::before {
-                content: attr(data-label); font-weight: 600; color: #64748b; font-size: 0.85rem; text-align: left; margin-right: 15px;
-            }
-        }
-    </style>
+    <!-- 📌 ดึงธีมสีดำ-ขาวมาใช้ -->
+    <link rel="stylesheet" href="theme-user.css">
 </head>
 <body>
 
@@ -65,7 +26,8 @@
         <!-- 🔵 หมวดหมู่: เมนูลัดแบบการ์ด -->
         <div class="section-title title-blue">เมนูลัด (ทำรายการด่วน)</div>
         <div class="row g-3 mb-5">
-            <div class="col-md-6 col-12">
+            <!-- 📌 เปลี่ยนเป็น col-md-4 เพื่อให้ 3 ปุ่มเรียงแถวหน้ากระดานพอดี -->
+            <div class="col-md-4 col-12">
                 <div class="menu-card card-step2" onclick="promptForStep(2)">
                     <div class="menu-icon">✅</div>
                     <div class="menu-text">
@@ -74,7 +36,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-12">
+            <div class="col-md-4 col-12">
                 <div class="menu-card card-step3" onclick="promptForStep(3)">
                     <div class="menu-icon">📝</div>
                     <div class="menu-text">
@@ -83,21 +45,12 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-12">
+            <div class="col-md-4 col-12">
                 <div class="menu-card card-step4" onclick="promptForStep(4)">
                     <div class="menu-icon">📥</div>
                     <div class="menu-text">
                         <h6>Step 4 | ส่งคืน</h6>
                         <p>ส่งคืนเครื่องเมื่อใช้งานเสร็จสิ้น</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-12">
-                <div class="menu-card card-report" onclick="window.location.href='report-issue.html'">
-                    <div class="menu-icon">⚠️</div>
-                    <div class="menu-text">
-                        <h6>แจ้งปัญหา / รายงาน</h6>
-                        <p>แจ้งเครื่องชำรุด หรือรายงานปัญหาการใช้งาน</p>
                     </div>
                 </div>
             </div>
@@ -116,11 +69,11 @@
             <table class="table table-hover align-middle">
                 <thead>
                     <tr>
-                        <th>เลขรายการ</th>
-                        <th>วัน-เวลาที่อัปเดต</th>
-                        <th>รหัส iPad</th>
-                        <th>สถานะปัจจุบัน</th>
-                        <th>จัดการ</th>
+                        <th style="width: 15%;">เลขรายการ</th>
+                        <th style="width: 15%;">วัน-เวลาที่อัปเดต</th>
+                        <th style="width: 40%;">รหัส iPad</th>
+                        <th style="width: 15%;">สถานะปัจจุบัน</th>
+                        <th style="width: 15%;">จัดการ</th>
                     </tr>
                 </thead>
                 <tbody id="userTableBody">

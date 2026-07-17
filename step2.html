@@ -7,7 +7,8 @@
     <style>
         body { background: #f1f5f9; font-family: 'Kanit', sans-serif; padding: 20px; }
         .confirm-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 850px; margin: auto; }
-        .btn-confirm { background: #10b981; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: 100%; margin-top: 20px; }
+        .btn-confirm { background: #10b981; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: 100%; margin-top: 20px; transition: 0.3s; }
+        .btn-confirm:hover { background: #059669; color: white; }
         .info-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
         .info-label { font-size: 0.85rem; color: #64748b; margin-bottom: 2px; }
         .info-value { font-size: 1.1rem; font-weight: bold; }
@@ -37,39 +38,40 @@
                 <tr><th>iPad</th><th>Drive</th><th>File</th><th>Img</th><th>Safari</th><th>ปุ่มลัด</th></tr>
             </thead>
             <tbody id="itemList">
-                <tr><td colspan="6" class="text-muted py-3">กำลังโหลดข้อมูล...</td></tr>
+                <tr><td colspan="6" class="text-muted py-3">กำลังโหลดข้อมูล... ⏳</td></tr>
             </tbody>
         </table>
     </div>
     <textarea id="reportNote" class="form-control mt-3" rows="2" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)..."></textarea>
-    <button id="btnSubmit" class="btn btn-confirm" onclick="submitReceipt()" disabled>✅ ยืนยันการรับเครื่อง</button>
+    <button id="btnSubmit" class="btn btn-confirm" onclick="submitReceipt()">✅ ยืนยันการรับเครื่อง</button>
 </div>
+
+<!-- 📌 เพิ่ม SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec";
     const reqId = new URLSearchParams(window.location.search).get('reqId');
 
-    // ตัวแปรเก็บชื่อผู้ใช้ที่กำลังล็อกอินอยู่ เพื่อส่งไปบันทึกตอนรับเครื่อง
     const currentLoggerName = localStorage.getItem("userName") || "ผู้ใช้งาน";
 
     fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getStep1Data", reqId: reqId }) })
     .then(res => res.json())
     .then(res => {
-        // แสดงชื่อผู้เบิกและแอดมิน
         document.getElementById('displayUserName').innerText = res.userName || "ไม่ระบุ";
         document.getElementById('displayAdminName').innerText = res.adminName || "ไม่ระบุ";
 
         const tbody = document.getElementById('itemList');
-        tbody.innerHTML = ""; // ล้างข้อความกำลังโหลด
+        tbody.innerHTML = ""; 
 
         if(res.data && res.data.length > 0) {
             res.data.forEach(item => {
                 tbody.innerHTML += `<tr>
-                    <td class="fw-bold"><input type="checkbox" class="select-ipad me-2" id="btn-${item.ipadId}" onchange="validateForm()"> <label for="btn-${item.ipadId}" style="cursor:pointer;">${item.ipadId}</label></td>
-                    <td><input type="checkbox" class="check-app form-check-input" onchange="validateForm()"></td>
-                    <td><input type="checkbox" class="check-app form-check-input" onchange="validateForm()"></td>
-                    <td><input type="checkbox" class="check-app form-check-input" onchange="validateForm()"></td>
-                    <td><input type="checkbox" class="check-app form-check-input" onchange="validateForm()"></td>
+                    <td class="fw-bold"><input type="checkbox" class="select-ipad me-2" id="btn-${item.ipadId}"> <label for="btn-${item.ipadId}" style="cursor:pointer;">${item.ipadId}</label></td>
+                    <td><input type="checkbox" class="check-app form-check-input"></td>
+                    <td><input type="checkbox" class="check-app form-check-input"></td>
+                    <td><input type="checkbox" class="check-app form-check-input"></td>
+                    <td><input type="checkbox" class="check-app form-check-input"></td>
                     <td><button type="button" class="btn btn-success btn-sm fw-bold" onclick="tickAll(this)">✔ ติ๊กครบ</button></td>
                 </tr>`;
             });
@@ -82,28 +84,33 @@
         const row = btn.closest('tr');
         row.querySelector('.select-ipad').checked = true;
         row.querySelectorAll('.check-app').forEach(cb => cb.checked = true);
-        validateForm();
-    }
-
-    function validateForm() {
-        document.getElementById('btnSubmit').disabled = document.querySelectorAll('.select-ipad:checked').length === 0;
     }
 
     async function submitReceipt() {
-        const btn = document.getElementById('btnSubmit');
-        btn.innerText = "กำลังบันทึกข้อมูล..."; 
-        btn.disabled = true;
-        
         let items = [];
         document.querySelectorAll('.select-ipad:checked').forEach(ipad => {
             const row = ipad.closest('tr');
-            // เปลี่ยนค่าที่ส่งไปให้เป็น ☑ หรือ ☐[cite: 14]
             const checks = Array.from(row.querySelectorAll('.check-app')).map(c => c.checked ? "☑" : "☐");
             items.push({ ipadId: row.querySelector('label').innerText, checklist: checks.join(",") });
         });
 
+        // 🚨 ดักจับ: ถ้าไม่เลือก iPad ให้บล็อกทันที
+        if (items.length === 0) {
+            Swal.fire({
+                title: "⚠️ ข้อมูลไม่ครบถ้วน",
+                text: "กรุณาติ๊กเลือกหน้าชื่อ iPad อย่างน้อย 1 เครื่องก่อนกดยืนยันครับ!",
+                icon: "warning",
+                confirmButtonColor: "#f59e0b"
+            });
+            return;
+        }
+
+        const btn = document.getElementById('btnSubmit');
+        btn.innerText = "กำลังบันทึกข้อมูล... ⏳"; 
+        btn.disabled = true;
+
         try {
-            await fetch(API_URL, {
+            const response = await fetch(API_URL, {
                 method: "POST",
                 body: JSON.stringify({ 
                     action: "updateStatus", 
@@ -113,10 +120,19 @@
                     name: currentLoggerName 
                 })
             });
-            alert("✅ บันทึกข้อมูลรับเครื่องเรียบร้อยแล้ว!"); 
-            window.location.href = "user.html"; // หรือใช้ window.close();
+            
+            const result = await response.json();
+            if (result.status === "success") {
+                Swal.fire("สำเร็จ!", "✅ บันทึกข้อมูลรับเครื่องเรียบร้อยแล้ว!", "success").then(() => {
+                    window.location.href = "user.html"; 
+                });
+            } else {
+                Swal.fire("❌ เกิดข้อผิดพลาด", result.message || "ในการบันทึกข้อมูล", "error");
+                btn.innerText = "✅ ยืนยันการรับเครื่อง";
+                btn.disabled = false;
+            }
         } catch (error) {
-            alert("❌ เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+            Swal.fire("❌ เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
             btn.innerText = "✅ ยืนยันการรับเครื่อง";
             btn.disabled = false;
         }

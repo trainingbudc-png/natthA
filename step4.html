@@ -9,26 +9,17 @@
     <style>
         body { background: #f1f5f9; font-family: 'Kanit', sans-serif; padding: 20px; }
         .confirm-card { background: white; padding: 0; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); max-width: 1000px; margin: auto; overflow: hidden; }
-        
-        /* สไตล์หัวตารางสีม่วง */
         .purple-header { background-color: #7c3aed; color: white; padding: 20px; font-weight: 600; font-size: 1.2rem; text-align: left; }
-        
-        /* กล่องแสดงข้อมูลรายการและคนคืน */
         .info-panel { padding: 15px 20px; background: #f5f3ff; border-bottom: 1px solid #ddd6fe; display: flex; justify-content: space-around; align-items: center; }
         .info-label { font-size: 0.85rem; color: #6d28d9; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
         .info-value { font-size: 1.1rem; font-weight: bold; color: #4c1d95; }
         .divider { width: 1px; background-color: #ddd6fe; height: 40px; }
-        
         .table { margin-bottom: 0 !important; }
         .table th { font-size: 0.85rem; vertical-align: middle; text-align: center; color: #4b5563; background: #f9fafb; padding: 12px; }
         .table td { vertical-align: middle; text-align: center; padding: 12px; }
-        
         .check-item { width: 22px; height: 22px; cursor: pointer; accent-color: #7c3aed; }
-        
-        /* ปุ่มลัดติ๊กครบ */
         .btn-shortcut { background: #ede9fe; color: #6d28d9; border: none; font-size: 0.75rem; font-weight: bold; padding: 6px 12px; border-radius: 6px; transition: 0.2s; }
         .btn-shortcut:hover { background: #ddd6fe; }
-        
         .btn-confirm { background: #7c3aed; color: white; border-radius: 12px; padding: 15px; font-weight: bold; width: calc(100% - 40px); margin: 20px; border: none; transition: 0.3s; }
         .btn-confirm:hover { background: #6d28d9; }
     </style>
@@ -37,7 +28,7 @@
 
 <div class="confirm-card">
     <div class="purple-header">
-        iPad ที่คืน เครื่องที่ 1-10
+        iPad ที่ส่งคืน
     </div>
     
     <div class="info-panel">
@@ -69,7 +60,7 @@
                 </tr>
             </thead>
             <tbody id="itemList">
-                <tr><td colspan="10" class="text-muted py-4 text-center">กำลังโหลดข้อมูล...</td></tr>
+                <tr><td colspan="10" class="text-muted py-4 text-center">กำลังโหลดข้อมูล... ⏳</td></tr>
             </tbody>
         </table>
     </div>
@@ -77,15 +68,20 @@
     <button class="btn btn-confirm" onclick="submitReturn()">💾 ยืนยันการส่งคืนเครื่องทั้งหมด</button>
 </div>
 
+<!-- 📌 เพิ่ม SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec";
     const reqId = new URLSearchParams(window.location.search).get('reqId');
     const currentLoggerName = localStorage.getItem("userName") || "User";
 
     window.onload = function() {
-        if(!reqId) { alert("ไม่พบเลขรายการ"); return; }
+        if(!reqId) { 
+            Swal.fire("ข้อผิดพลาด", "ไม่พบเลขรายการ", "error"); 
+            return; 
+        }
         
-        // เซ็ตข้อมูลโชว์บนหน้าเว็บ
         document.getElementById('displayReqIdBox').innerText = reqId;
         document.getElementById('displayUserName').innerText = currentLoggerName;
 
@@ -122,18 +118,30 @@
     }
 
     async function submitReturn() {
-        const btn = document.querySelector('.btn-confirm');
-        btn.innerText = "⏳ กำลังบันทึก...";
-        btn.disabled = true;
-
         let items = [];
         document.querySelectorAll('#itemList tr[data-ipad]').forEach(row => {
             const checks = Array.from(row.querySelectorAll('.check-item')).map(c => c.checked ? "☑" : "☐");
             items.push({ ipadId: row.dataset.ipad, checks: checks });
         });
 
+        // 🚨 ดักจับ: กันผู้ใช้กดตอนโหลดไม่เสร็จ
+        if(items.length === 0) {
+            Swal.fire({
+                title: "⚠️ ข้อมูลไม่ครบถ้วน",
+                text: "ไม่พบข้อมูลอุปกรณ์ กรุณารอให้ระบบโหลดข้อมูลเสร็จสิ้นครับ",
+                icon: "warning",
+                confirmButtonColor: "#7c3aed"
+            });
+            return;
+        }
+
+        const btn = document.querySelector('.btn-confirm');
+        const originalText = btn.innerText;
+        btn.innerText = "⏳ กำลังบันทึก...";
+        btn.disabled = true;
+
         try {
-            await fetch(API_URL, {
+            const res = await fetch(API_URL, {
                 method: "POST",
                 body: JSON.stringify({ 
                     action: "saveStep4", 
@@ -142,15 +150,18 @@
                     name: currentLoggerName
                 })
             });
+            const result = await res.json();
 
-            // Redirect ไปหน้า success พร้อมสรุปรายการ
-            const summary = `เลขรายการ: ${reqId}\nจำนวนเครื่องที่คืน: ${items.length}`;
-            window.location.href = `success.html?title=ส่งคืนเครื่องสำเร็จ&desc=ระบบได้รับข้อมูลการคืนเครื่องแล้ว&summary=${encodeURIComponent(summary)}`;
-            
+            if (result.status === "success") {
+                const summary = `เลขรายการ: ${reqId}\nจำนวนเครื่องที่คืน: ${items.length}`;
+                window.location.href = `success.html?title=ส่งคืนเครื่องสำเร็จ&desc=ระบบได้รับข้อมูลการคืนเครื่องแล้ว&summary=${encodeURIComponent(summary)}`;
+            } else {
+                Swal.fire("❌ เกิดข้อผิดพลาด", result.message, "error");
+                btn.innerText = originalText; btn.disabled = false;
+            }
         } catch (error) {
-            alert("❌ เกิดข้อผิดพลาด");
-            btn.innerText = "💾 ยืนยันการส่งคืนเครื่องทั้งหมด";
-            btn.disabled = false;
+            Swal.fire("❌ เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อระบบได้", "error");
+            btn.innerText = originalText; btn.disabled = false;
         }
     }
 </script>

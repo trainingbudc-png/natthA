@@ -16,17 +16,7 @@
         .divider { width: 1px; background-color: #fed7aa; height: 40px; }
 
         /* สไตล์ช่องกรอกชื่อแอดมิน */
-        .input-admin-name {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #c2410c;
-            border: 1px dashed #fdba74;
-            background: transparent;
-            text-align: center;
-            border-radius: 6px;
-            width: 150px;
-            padding: 2px;
-        }
+        .input-admin-name { font-size: 1.1rem; font-weight: bold; color: #c2410c; border: 1px dashed #fdba74; background: transparent; text-align: center; border-radius: 6px; width: 150px; padding: 2px; }
         .input-admin-name:focus { outline: none; border-color: #f97316; background: white; }
 
         /* สไตล์ปุ่มและตาราง */
@@ -97,13 +87,16 @@
                 </tr>
             </thead>
             <tbody id="itemList">
-                <tr><td colspan="8" class="text-muted py-4">กำลังโหลดรายการ iPad...</td></tr>
+                <tr><td colspan="8" class="text-muted py-4">กำลังโหลดรายการ iPad... ⏳</td></tr>
             </tbody>
         </table>
     </div>
 
     <button class="btn btn-confirm mt-4" onclick="saveStep3()">💾 ยืนยันเครื่องพร้อมสอบ</button>
 </div>
+
+<!-- 📌 เพิ่ม SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyw2y3tAd1h-krTwcdjX67nxIWEH6ySWvKoErnJbjrxIvouq5cG8_smLZqrvJlcLvbE/exec";
@@ -176,27 +169,33 @@
     }
 
     async function saveStep3() {
-        const btn = document.querySelector('.btn-confirm');
-        let inspector = document.getElementById('inspectorName').value.trim();
-        if(inspector === "") { inspector = "Admin (ไม่ระบุชื่อ)"; }
-
-        const originalText = btn.innerText;
-        btn.innerText = "⏳ กำลังบันทึกข้อมูล..."; 
-        btn.disabled = true;
-        
-        const examValue = document.querySelector('input[name="examType"]:checked').value;
-        const noteValue = document.getElementById('reasonNote').value;
-        
         let items = [];
         document.querySelectorAll('#itemList tr[data-ipad]').forEach(row => {
             const checks = Array.from(row.querySelectorAll('.check-item')).map(c => c.checked ? "☑" : "☐");
             items.push({ ipadId: row.dataset.ipad, checks: checks });
         });
 
+        // 🚨 ดักจับ: กันผู้ใช้ใจร้อนกดส่งตอนที่ iPad ยังโหลดไม่เสร็จ
         if(items.length === 0) {
-            alert("⚠️ ไม่มีข้อมูล iPad ให้บันทึกครับ");
-            btn.innerText = originalText; btn.disabled = false; return;
+            Swal.fire({
+                title: "⚠️ ข้อมูลไม่ครบถ้วน",
+                text: "ไม่พบข้อมูล iPad หรือรายชื่อยังโหลดไม่เสร็จ กรุณารอสักครู่ครับ!",
+                icon: "warning",
+                confirmButtonColor: "#f97316"
+            });
+            return;
         }
+
+        const btn = document.querySelector('.btn-confirm');
+        const originalText = btn.innerText;
+        btn.innerText = "⏳ กำลังบันทึกข้อมูล..."; 
+        btn.disabled = true;
+        
+        let inspector = document.getElementById('inspectorName').value.trim();
+        if(inspector === "") { inspector = "Admin (ไม่ระบุชื่อ)"; }
+
+        const examValue = document.querySelector('input[name="examType"]:checked').value;
+        const noteValue = document.getElementById('reasonNote').value;
         
         try {
             const res = await fetch(API_URL, {
@@ -213,15 +212,14 @@
             
             const result = await res.json();
             if(result.status === "success") {
-                // ✅ ส่วนที่แก้: เด้งไป success.html แทน admin.html
                 const summary = `เลขรายการ: ${reqId}`;
                 window.location.href = `success.html?title=ตรวจก่อนสอบสำเร็จ&desc=บันทึกข้อมูล Check List เรียบร้อยแล้ว&summary=${encodeURIComponent(summary)}`;
             } else {
-                alert("❌ เกิดข้อผิดพลาด: " + result.message);
+                Swal.fire("❌ เกิดข้อผิดพลาด", result.message, "error");
                 btn.innerText = originalText; btn.disabled = false;
             }
         } catch (error) {
-            alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ");
+            Swal.fire("❌ เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
             btn.innerText = originalText; btn.disabled = false;
         }
     }

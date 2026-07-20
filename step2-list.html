@@ -71,7 +71,8 @@
                             <td data-label="📌 เลขรายการ" class="fw-bold text-dark">${req.reqId}</td>
                             <td data-label="🕒 วันที่">${dateStr}</td>
                             <td data-label="📱 รหัส iPad" style="max-width: 300px;">${formattedIpads}</td>
-                            <td data-label="📊 สถานะ"><span class="badge bg-primary px-3 py-2 rounded-pill">${req.status}</span></td>
+                            <!-- ⚙️ จุดที่ 1: เปลี่ยนสีพื้นหลังกรอบสถานะจาก bg-primary เป็น bg-danger (สีแดง) -->
+                            <td data-label="📊 สถานะ"><span class="badge bg-danger px-3 py-2 rounded-pill">${req.status}</span></td>
                             <td data-label="⚙️ จัดการ">
                                 <button class="btn btn-action btn-sm px-3 shadow-sm w-100" onclick="window.location.href='step2.html?reqId=${req.reqId}'">➡️ ดำเนินการ</button>
                             </td>
@@ -98,7 +99,10 @@
         });
         let displayGroups = [];
         if (normalIds.length > 0) displayGroups.push(`<span class="text-dark fw-bold">[iPad]</span> ${normalIds.join(', ')}`);
-        if (airIds.length > 0) displayGroups.push(`<span class="text-secondary fw-bold">[Air+APC]</span> ${airIds.join(', ')}`);
+        
+        // ⚙️ จุดที่ 2: เปลี่ยนคลาสสีฟอนต์ของ [Air+APC] จาก text-secondary เป็น text-danger (สีแดงตัวหนา)
+        if (airIds.length > 0) displayGroups.push(`<span class="text-danger fw-bold">[Air+APC]</span> ${airIds.join(', ')}`);
+        
         return displayGroups.join('<br>');
     }
 </script>

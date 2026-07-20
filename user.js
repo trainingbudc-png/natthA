@@ -56,7 +56,8 @@ async function loadUserTableData() {
                         displayGroups.push(`<span class="text-primary fw-bold">[iPad]</span> ${normalIds.join(', ')}`);
                     }
                     if (airIds.length > 0) {
-                        displayGroups.push(`<span class="text-success fw-bold">[Air+APC]</span> ${airIds.join(', ')}`);
+                        // ⚙️ จุดที่ 1: เปลี่ยนสีฟอนต์ [Air+APC] จาก text-success เป็น text-danger (สีแดง)
+                        displayGroups.push(`<span class="text-danger fw-bold">[Air+APC]</span> ${airIds.join(', ')}`);
                     }
                     formattedIpads = displayGroups.join('<br>');
                 }
@@ -68,7 +69,8 @@ async function loadUserTableData() {
 
                 if (statusTxt.includes("Step[1]")) {
                     displayStatus = "Step[1]";
-                    badgeClass = "bg-primary text-white";
+                    // ⚙️ จุดที่ 2: เปลี่ยนสีพื้นหลังกรอบสถานะจาก bg-primary เป็น bg-danger (สีแดง)
+                    badgeClass = "bg-danger text-white";
                     actionBtn = `<button class="btn btn-success btn-sm fw-bold rounded-pill px-3 shadow-sm w-100" onclick="window.location.href='step2.html?reqId=${item.reqId}'">➡️ รับเครื่อง</button>`;
                 
                 } else if (statusTxt.includes("Step[2]")) {

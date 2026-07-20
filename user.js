@@ -88,9 +88,9 @@ async function loadUserTableData() {
                     badgeClass = statusTxt.includes("Step[4]") ? "bg-danger text-white" : "bg-success text-white";
                     actionBtn = `<button class="btn btn-secondary btn-sm fw-bold rounded-pill px-3 w-100" disabled>✔️ เสร็จสิ้น</button>`;
                 } else {
-                    displayStatus = "รอดำเนินการ";
-                    actionBtn = `<span class="text-muted">-</span>`;
-                }
+    displayStatus = `<span style="color: #adb5bd;">รอดำเนินการ</span>`; // เปลี่ยนรหัสสี #... ได้ตามใจชอบ
+    actionBtn = `<span class="text-muted">-</span>`;
+}
                 
                 tbody.innerHTML += `
                     <tr>

@@ -54,7 +54,6 @@
             tbody.innerHTML = "";
 
             if (result.status === "success" && result.data.length > 0) {
-                // 📌 กรอง: ของตัวเอง + รอส่งคืน (ผ่าน Step 3 มาแล้ว)
                 const pendingRequests = result.data.filter(item => item.name === currentUser && item.status && item.status.includes("Step[3]"));
 
                 if (pendingRequests.length === 0) {
@@ -71,7 +70,8 @@
                             <td data-label="📌 เลขรายการ" class="fw-bold text-dark">${req.reqId}</td>
                             <td data-label="🕒 วันที่">${dateStr}</td>
                             <td data-label="📱 รหัส iPad" style="max-width: 300px;">${formattedIpads}</td>
-                            <td data-label="📊 สถานะ"><span class="badge bg-danger text-White px-3 py-2 rounded-pill">${req.status}</span></td>
+                            <!-- 📌 ปรับป้ายสถานะเป็นสีแดง -->
+                            <td data-label="📊 สถานะ"><span class="badge bg-danger text-white px-3 py-2 rounded-pill">${req.status}</span></td>
                             <td data-label="⚙️ จัดการ">
                                 <button class="btn btn-action btn-sm px-3 shadow-sm w-100" onclick="window.location.href='step4.html?reqId=${req.reqId}'">➡️ ดำเนินการ</button>
                             </td>

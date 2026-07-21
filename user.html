@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>หน้าผู้ใช้งาน | ระบบ iPad</title>
+    
+    <!-- 📌 1. ไอคอนบนแท็บเบราว์เซอร์ (Favicon) ใช้รูปของพี่แล้ว -->
+    <link rel="icon" href="https://github.com/trainingbudc-png/Nattha/blob/main/%E0%B8%A3%E0%B8%B9%E0%B8%9B.png?raw=true" type="image/png">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     
@@ -14,7 +18,13 @@
 
     <!-- 🟢 Navbar -->
     <nav class="nav-header">
-        <div class="nav-title">📱 เมนูผู้ใช้งาน</div>
+        
+        <!-- 📌 2. ไอคอนหน้าคำว่า "เมนูผู้ใช้งาน" ใช้รูปของพี่แล้ว -->
+        <div class="nav-title d-flex align-items-center gap-2">
+            <img src="https://github.com/trainingbudc-png/Nattha/blob/main/%E0%B8%A3%E0%B8%B9%E0%B8%9B.png?raw=true" alt="Logo" style="width: 28px; height: 28px; object-fit: contain;">
+            เมนูผู้ใช้งาน
+        </div>
+
         <div class="d-flex align-items-center gap-2">
             <span class="text-primary fw-bold d-none d-sm-inline">สวัสดี, <span id="showName">Loading...</span></span>
             
@@ -22,7 +32,7 @@
             <button class="btn btn-light btn-sm rounded-circle shadow-sm border" onclick="openProfileModal()" title="แก้ไขข้อมูลส่วนตัว" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
                 ⚙️
             </button>
-
+            
             <button class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold" onclick="logoutSystem()">ออกจากระบบ</button>
         </div>
     </nav>
@@ -98,8 +108,9 @@
                 </div>
                 <div class="modal-body pb-4 pt-3">
                     <div class="mb-3">
-                        <label class="form-label text-muted small mb-1">ชื่อ-นามสกุล (ไม่สามารถเปลี่ยนเองได้)</label>
-                        <input type="text" id="editProfileName" class="form-control bg-light text-muted" readonly>
+                        <label class="form-label fw-bold mb-1">ชื่อ-นามสกุล</label>
+                        <input type="text" id="editProfileName" class="form-control" placeholder="ระบุชื่อ-นามสกุลของคุณ">
+                        <small class="text-danger mt-1 d-block" style="font-size: 0.8rem;">*คำเตือน: หากเปลี่ยนชื่อ ประวัติรายการเดิมอาจไม่แสดงในหน้านี้</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold mb-1">ฝ่าย / แผนก</label>

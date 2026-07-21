@@ -16,8 +16,8 @@
         /* 📌 ปรับหัวข้อแต่ละ Section ให้ใหญ่ขึ้นและเป็นสีดำเข้ม */
         .section-title {
             color: #212529 !important;
-            font-size: 1.35rem !important; /* ขยายขนาดตัวหนังสือ */
-            font-weight: 700 !important; /* เพิ่มความหนา */
+            font-size: 1.35rem !important; 
+            font-weight: 700 !important; 
         }
 
         /* เปลี่ยนตารางเป็นการ์ดบนมือถือ */
@@ -169,25 +169,27 @@
                     let displayStatus = statusTxt;
                     let badgeClass = "bg-secondary";
 
+                    // 📌 ปรับแก้สีของ Step 1-5 ให้เป็นสีแดง (bg-danger) ทั้งหมด
                     if(statusTxt.includes("รอแอดมินยืนยัน")) {
                         displayStatus = "⏳ รอยืนยัน"; badgeClass = "bg-secondary text-white";
                     } else if(statusTxt.includes("ยกเลิกรายการ")) {
                         displayStatus = "❌ ยกเลิก"; badgeClass = "bg-dark text-white";
                     } else if(statusTxt.includes("Step[1]")) {
-                        displayStatus = "Step[1]"; badgeClass = "bg-primary text-white";
+                        displayStatus = "Step[1]"; badgeClass = "bg-danger text-white";
                     } else if(statusTxt.includes("Step[2]")) {
-                        displayStatus = "Step[2]"; badgeClass = "bg-info text-dark";
+                        displayStatus = "Step[2]"; badgeClass = "bg-danger text-white";
                     } else if(statusTxt.includes("Step[3]")) {
-                        displayStatus = "Step[3]"; badgeClass = "bg-warning text-dark";
+                        displayStatus = "Step[3]"; badgeClass = "bg-danger text-white";
                     } else if(statusTxt.includes("Step[4]")) {
                         displayStatus = "Step[4]"; badgeClass = "bg-danger text-white";
+                    } else if(statusTxt.includes("Step[5]")) {
+                        displayStatus = "Step[5]"; badgeClass = "bg-danger text-white";
                     } else if(statusTxt.includes("คืนแล้ว") || statusTxt.includes("เสร็จสิ้น") || statusTxt.includes("เคลียร์")) {
                         displayStatus = "✔️ เสร็จสิ้น"; badgeClass = "bg-success text-white";
                     } else if(statusTxt.includes("ซ่อม") || statusTxt.includes("ชำรุด") || statusTxt.includes("ปัญหา")) {
                         displayStatus = "⚠️ มีปัญหา"; badgeClass = "bg-dark text-warning";
                     }
 
-                    // 📌 เพิ่ม data-label ให้แสดงผลสวยงามบนมือถือ
                     tbody.innerHTML += `
                         <tr>
                             <td data-label="เลขรายการ" class="fw-bold text-dark">${item.reqId}</td>

@@ -8,8 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="theme-admin.css">
     
-    <!-- 📌 เพิ่ม Style สำหรับเปลี่ยนตารางเป็นการ์ดบนมือถือ -->
+    <!-- 📌 เพิ่ม Style สำหรับปรับแต่ง -->
     <style>
+        /* 📌 เปลี่ยนสีตัวหนังสือหัวข้อเมนูการ์ด (Step 1, 5, แจ้งปัญหา) เป็นสีดำเข้ม */
+        .menu-text h5 { color: #212529 !important; }
+
+        /* เปลี่ยนตารางเป็นการ์ดบนมือถือ */
         @media screen and (max-width: 768px) {
             .navbar-custom { flex-direction: column; gap: 15px; text-align: center; }
             .navbar-custom > div { justify-content: center; width: 100%; flex-wrap: wrap; }
@@ -52,7 +56,7 @@
                     </div>
                 </a>
             </div>
-            <div class="col-6 col	-md-6">
+            <div class="col-6 col-md-6">
                 <a href="step5-list.html" class="menu-card h-100"> 
                     <div class="menu-icon">🔍</div>
                     <div class="menu-text">
